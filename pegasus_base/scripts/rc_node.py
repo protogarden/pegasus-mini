@@ -13,19 +13,24 @@ import math
 
 class RoboClawInterface:
     def __init__(self):
+        
         self.left_speed = 0
         self.right_speed = 0
         self.address = 0x80
         self.rc = Roboclaw("/dev/ttyACM0", 115200)
+        
 
     def cb_speedCallBack(self, data):
+        
         self.left_speed = data.data[0]
         self.right_speed = data.data[1]
 
     def stop(self):
+        
         self.rc.SpeedAccelM1M2(self.address,0,0,0)    
         
     def run(self):
+        
         self.rc.Open()
 
         version = self.rc.ReadVersion(self.address)
@@ -92,9 +97,11 @@ class RoboClawInterface:
         self.rc.SpeedAccelM1M2(self.address,0,0,0)    
 
 if __name__ == '__main__':
+    
     hw_interface = RoboClawInterface()
 
     try:
+        
         hw_interface.run()
 
     except rospy.ROSInterruptException:

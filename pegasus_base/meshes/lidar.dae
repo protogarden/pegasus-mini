@@ -6,9 +6,9 @@
       <authoring_tool>FBX COLLADA exporter</authoring_tool>
       <comments/>
     </contributor>
-    <created>2021-10-21T11:39:16Z</created>
+    <created>2021-12-21T17:09:13Z</created>
     <keywords/>
-    <modified>2021-10-21T11:39:16Z</modified>
+    <modified>2021-12-21T17:09:13Z</modified>
     <revision/>
     <subject/>
     <title/>
@@ -16,12 +16,12 @@
     <up_axis>Z_UP</up_axis>
   </asset>
   <library_materials>
-    <material id="MaterialFBXASC032FBXASC03525" name="MaterialFBXASC032FBXASC03525">
-      <instance_effect url="#MaterialFBXASC032FBXASC03525-fx"/>
+    <material id="EmptyFBXASC032material" name="EmptyFBXASC032material">
+      <instance_effect url="#EmptyFBXASC032material-fx"/>
     </material>
   </library_materials>
   <library_effects>
-    <effect id="MaterialFBXASC032FBXASC03525-fx" name="MaterialFBXASC032FBXASC03525">
+    <effect id="EmptyFBXASC032material-fx" name="EmptyFBXASC032material">
       <profile_COMMON>
         <technique sid="standard">
           <phong>
@@ -29,10 +29,10 @@
               <color sid="emission">0.000000  0.000000 0.000000 1.000000</color>
             </emission>
             <ambient>
-              <color sid="ambient">0.439216  0.439216 0.439216 1.000000</color>
+              <color sid="ambient">0.588000  0.588000 0.588000 1.000000</color>
             </ambient>
             <diffuse>
-              <color sid="diffuse">0.439216  0.439216 0.439216 1.000000</color>
+              <color sid="diffuse">0.588000  0.588000 0.588000 1.000000</color>
             </diffuse>
             <specular>
               <color sid="specular">0.000000  0.000000 0.000000 1.000000</color>
@@ -48542,7 +48542,7 @@
         <vertices id="head.ipt-VERTEX">
           <input semantic="POSITION" source="#head.ipt-POSITION"/>
         </vertices>
-        <triangles count="10926" material="MaterialFBXASC032FBXASC03525">
+        <triangles count="10926" material="EmptyFBXASC032material">
           <input semantic="VERTEX" offset="0" source="#head.ipt-VERTEX"/>
           <input semantic="NORMAL" offset="1" source="#head.ipt-Normal0"/>
           <input semantic="TEXCOORD" offset="2" set="0" source="#head.ipt-UV0"/>
@@ -48552,37 +48552,21 @@
     </geometry>
   </library_geometries>
   <library_visual_scenes>
-    <visual_scene id="lidar" name="lidar">
-      <node name="lidar" id="lidar" sid="lidar">
+    <visual_scene id="Laser" name="Laser">
+      <node name="head.ipt" id="head.ipt" layer="laserFBXASC032" sid="head.ipt">
         <matrix sid="matrix">1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000</matrix>
+        <instance_geometry url="#head.ipt-lib">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="EmptyFBXASC032material" target="#EmptyFBXASC032material"/>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
         <extra>
           <technique profile="FCOLLADA">
             <visibility>1.000000</visibility>
           </technique>
         </extra>
-        <node name="lidar_ncl1_1" id="lidar_ncl1_1" sid="lidar_ncl1_1">
-          <matrix sid="matrix">1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000</matrix>
-          <extra>
-            <technique profile="FCOLLADA">
-              <visibility>1.000000</visibility>
-            </technique>
-          </extra>
-          <node name="head.ipt" id="head.ipt" sid="head.ipt">
-            <matrix sid="matrix">1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000</matrix>
-            <instance_geometry url="#head.ipt-lib">
-              <bind_material>
-                <technique_common>
-                  <instance_material symbol="MaterialFBXASC032FBXASC03525" target="#MaterialFBXASC032FBXASC03525"/>
-                </technique_common>
-              </bind_material>
-            </instance_geometry>
-            <extra>
-              <technique profile="FCOLLADA">
-                <visibility>1.000000</visibility>
-              </technique>
-            </extra>
-          </node>
-        </node>
       </node>
       <extra>
         <technique profile="MAX3D">
@@ -48596,6 +48580,6 @@
     </visual_scene>
   </library_visual_scenes>
   <scene>
-    <instance_visual_scene url="#lidar"/>
+    <instance_visual_scene url="#Laser"/>
   </scene>
 </COLLADA>

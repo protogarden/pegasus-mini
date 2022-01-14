@@ -12,6 +12,8 @@ import math
 
 class EncoderOdom:
     def __init__(self, ticks_per_meter, base_width):
+        
+        
         self.TICKS_PER_METER = ticks_per_meter
         self.BASE_WIDTH = base_width
         self.odom_pub = rospy.Publisher('/odom', Odometry, queue_size=10)
@@ -21,9 +23,12 @@ class EncoderOdom:
         self.last_enc_left = 0
         self.last_enc_right = 0
         self.last_enc_time = rospy.Time.now()
+        self.start_up = 1
 
+   
     @staticmethod
     def normalize_angle(angle):
+        
         while angle > pi:
             angle -= 2.0 * pi
         while angle < -pi:
@@ -31,6 +36,7 @@ class EncoderOdom:
         return angle
 
     def update(self, enc_left, enc_right):
+        
         left_ticks = enc_left - self.last_enc_left
         right_ticks = enc_right - self.last_enc_right
         self.last_enc_left = enc_left
@@ -43,6 +49,8 @@ class EncoderOdom:
         current_time = rospy.Time.now()
         d_time = (current_time - self.last_enc_time).to_sec()
         self.last_enc_time = current_time
+       
+       
 
         # TODO find better what to determine going straight, this means slight deviation is accounted
         if left_ticks == right_ticks:
@@ -56,6 +64,8 @@ class EncoderOdom:
             self.cur_y -= r * (cos(d_theta + self.cur_theta) - cos(self.cur_theta))
             self.cur_theta = self.normalize_angle(self.cur_theta + d_theta)
 
+        
+
         if abs(d_time) < 0.000001:
             vel_x = 0.0
             vel_theta = 0.0
@@ -66,19 +76,16 @@ class EncoderOdom:
         return vel_x, vel_theta
 
     def update_publish(self, enc_left, enc_right):
-        # 2106 per 0.1 seconds is max speed, error in the 16th bit is 32768
-        # TODO lets find a better way to deal with this error
-        if abs(enc_left - self.last_enc_left) > 20000:
-            rospy.logerr("Ignoring left encoder jump: cur %d, last %d" % (enc_left, self.last_enc_left))
-            self.last_enc_left = enc_left
-        elif abs(enc_right - self.last_enc_right) > 20000:
-            rospy.logerr("Ignoring right encoder jump: cur %d, last %d" % (enc_right, self.last_enc_right))
+        if self.start_up == 1:
             self.last_enc_right = enc_right
-        else:
-            vel_x, vel_theta = self.update(enc_left, enc_right)
-            self.publish_odom(self.cur_x, self.cur_y, self.cur_theta, vel_x, vel_theta)
+            self.last_enc_left = enc_left
+            self.start_up = 0
+        vel_x, vel_theta = self.update(enc_left, enc_right)
+        self.publish_odom(self.cur_x, self.cur_y, self.cur_theta, vel_x, vel_theta)
+        
 
     def publish_odom(self, cur_x, cur_y, cur_theta, vx, vth):
+        
         quat = tf.transformations.quaternion_from_euler(0, 0, cur_theta)
         current_time = rospy.Time.now()
 
@@ -110,27 +117,32 @@ class EncoderOdom:
         odom.twist.twist.linear.y = 0
         odom.twist.twist.angular.z = vth
         odom.twist.covariance = odom.pose.covariance
-
+      
         self.odom_pub.publish(odom)
 
 class PegasusBase:
     def __init__(self):
+        
         self.encoder = None
-        self.MAX_SPEED = 2.0
+        self.MAX_SPEED = 0.2
         self.TICKS_PER_METER = 8148.71
-        self.BASE_WIDTH = 0.27
+        self.BASE_WIDTH = 0.25365
         self.left_speed = 0
         self.right_speed = 0
 
 
     def cb_encoder(self,data):
+        
         enc1 = data.data[0]
         enc2 = data.data[1]
+        
+        
 
         if self.encoder != None:
             self.encoder.update_publish(enc1, enc2)
 
     def cb_cmdvel(self,twist):
+        
         
         #rospy.loginfo("cmdvel")
         #last_set_speed_time = rospy.get_rostime()
@@ -158,19 +170,27 @@ class PegasusBase:
 
 
     def run(self):
+        
         rospy.init_node('pegasus_base_node', anonymous=True)
+        
         rospy.Subscriber("encoder", Int64MultiArray, self.cb_encoder)
+        
         rospy.Subscriber("cmd_vel", Twist, self.cb_cmdvel)
+        
+
 
         rate = rospy.Rate(10) # 10hz    
 
-        self.encoder = EncoderOdom(8148.71, 0.25)    
+        self.encoder = EncoderOdom(8148.71, 0.25365)    
+        
 
         wheelSpeedPublisher = rospy.Publisher('wheelspeed', Int64MultiArray, queue_size=2)
+        
 
         speed_data = Int64MultiArray()
 
         while not rospy.is_shutdown():
+            
             speed_data.data = [self.left_speed, self.right_speed]
             wheelSpeedPublisher.publish(speed_data)        
 
@@ -178,8 +198,10 @@ class PegasusBase:
 
 
 if __name__ == '__main__':
+    
     pegasus_base = PegasusBase()
     try:
+        
         pegasus_base.run()
     except rospy.ROSInterruptException:
         pass
