@@ -124,7 +124,7 @@ class PegasusBase:
     def __init__(self):
         
         self.encoder = None
-        self.MAX_SPEED = 0.2
+        self.MAX_SPEED = 2
         self.TICKS_PER_METER = 8148.71
         self.BASE_WIDTH = 0.25365
         self.left_speed = 0

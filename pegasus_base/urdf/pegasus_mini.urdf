@@ -319,7 +319,7 @@
       <leftJoint>leftwheel_joint</leftJoint>
       <rightJoint>rightwheel_joint</rightJoint>
       <wheelSeparation>0.390</wheelSeparation>
-      <wheelDiameter>0.14393</wheelDiameter>
+      <wheelDiameter>0.125</wheelDiameter>
       <broadcastTF>1</broadcastTF>
       <wheelTorque>30</wheelTorque>
       <wheelAcceleration>1.8</wheelAcceleration>
