@@ -16,7 +16,7 @@
     <arg name="debug" value="$(arg debug)"/>
   </include>
 
-    <include file="$(find pegasus_base)/launch/spawn.launch">
+    <include file="$(find pegasus_simulation)/launch/spawn.launch">
     <arg name="x" default="0.0" />
     <arg name="y" default="0.0" />
     <arg name="z" default="0.0" />

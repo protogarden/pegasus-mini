@@ -5,7 +5,7 @@
     name="base_link">
     <inertial>
       <origin
-        xyz="0.05 0.00100384888904426 0.0291653156426118"
+        xyz="0.2 0.00100384888904426 0.0291653156426118"
         rpy="0 0 0" />
       <mass
         value="3.10942485851605" />
@@ -41,48 +41,33 @@
       </geometry>
     </collision>
   </link>
+  <link name="frontcastor">
+   
+  <visual>
+    <origin 
+      xyz="0.15 0 0"
+      rpy="1.5707 0 0"/>
 
-<link
-    name="frontcastor">
-    <inertial>
-      <origin
-        xyz="-5.72225387474662E-15 5.64825963778048E-15 -1.06852380645045E-16"
-        rpy="0 0 0" />
-      <mass
-        value="0.232013920708616" />
-      <inertia
-        ixx="0.000277320036972709"
-        ixy="-1.20216774398711E-17"
-        ixz="-1.01007354824876E-32"
-        iyy="0.000538249657591165"
-        iyz="1.19367335965887E-19"
-        izz="0.000277320036972708" />
-    </inertial>
-    <visual>
-      <origin
-        xyz="0.15 0 0"
-        rpy="1.5707 0 0" />
-      <geometry>
-        <box size="0.001 0.001 0.001"/>
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="1.5707 0 0" />
-      <geometry>
-        <cylinder length="0.02" radius="0.0375"/>
+    <geometry>
+      <box size="0.001 0.001 0.001"/>
+    </geometry>
 
-      </geometry>
-    </collision>
-  </link>
-     
-  <joint
+  </visual>
+
+  <collision>
+    <origin 
+      xyz="0 0 0"
+      rpy="1.5707 0 0"/>
+
+    <geometry>
+      <cylinder length="0.02" radius="0.0375"/>
+    </geometry>
+  </collision>
+
+</link>
+
+
+<joint
     name="frontcastor_joint"
     type="continuous">
     <origin
@@ -94,7 +79,7 @@
       link="frontcastor" />
     <axis
       xyz="0 1 0" />
-  </joint>
+</joint>
   
 
 
