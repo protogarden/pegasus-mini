@@ -74,7 +74,7 @@ Install ROS Melodic:
 
     9.2. Install pegasus-mini package and various other dependent packages:
 
-    .. code-block:: bash
+    .. code-block:: bash        
 
         git clone https://github.com/protogarden/pegasus-mini.git
         sudo apt install ros-melodic-rplidar-ros
