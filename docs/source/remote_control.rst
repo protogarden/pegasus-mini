@@ -14,7 +14,7 @@ Finally the rc_node node subscribes to these wheel speed commands to sends them 
 
     sudo apt-get install ros-melodic-teleop-twist-keyboard
 
-2. Run the Pegasus Base package by running the following command. Before performing 
+2. Run the Pegasus Base package by running the following command. 
 
 .. code-block:: bash
 
