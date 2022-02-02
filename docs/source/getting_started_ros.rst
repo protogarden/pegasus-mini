@@ -1,6 +1,9 @@
-#############################
-Dependency Installation Guide
-#############################
+########################
+Getting Started with ROS
+########################
+
+ROS Software Setup
+++++++++++++++++++
 
 .. note::
     The following installation is assumed to be taking place on a Nvidia Jetson Nano.

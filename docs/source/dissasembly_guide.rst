@@ -22,7 +22,7 @@
     :width: 300
 
 #################
-Dissasembly Guide
+Disassembly Guide
 #################
 
 1. Remove the top and bottom panel by removing the 8 screws on the top panel (M8) and the 10 screws on the bottom panel (M8/M6).
