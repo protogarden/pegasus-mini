@@ -1,12 +1,6 @@
 # pegasus-mini
 
-roslaunch pegasus_base pegasus_base.launch
 
-requires rosboard cloned in src of workspace - https://github.com/dheera/rosboard
+![pegasus mini](docs/source/images/peggy.jpg)
 
-Jetson Nano Notes:
-
-- Disable nvgetty on /dev/ttyTHS1
-
-systemctl stop nvgetty
-systemctl disable nvgetty
+Documentation : https://www.protogarden.io/pegasus/
