@@ -18,6 +18,7 @@ class RoboClawInterface:
         self.right_speed = 0
         self.address = 0x80
         self.rc = Roboclaw("/dev/ttyACM0", 115200)
+        self.rc.ResetEncoders(self.address)
         
 
     def cb_speedCallBack(self, data):
