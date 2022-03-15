@@ -14,10 +14,11 @@ Welcome to the Pegasus-Mini Documentation!
    :caption: Getting Started
 
    overview
-   getting_started_ros
-   ros_tutorials
    getting_started_python
    python_tutorials
+   getting_started_ros
+   ros_tutorials
+
 
 .. toctree::
    :maxdepth: 5
