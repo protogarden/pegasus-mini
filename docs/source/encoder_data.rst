@@ -6,6 +6,9 @@ The Pegasus-Mini uses the BasicMicro Roboclaw 2x7A Motor Controller in order to 
 such as motor ticks, aswell as motor speed, in the form of ticks per a second. A tick can be desribed as a change in anglular position of the motor. The Pegasus-Mini has 64 ticks per a rotation of its drive motors. The following desribes how to obtain this
 data from the motor controller using Python.
 
+.. note::
+    This documentation assumes that you have been through the :doc:`python_tutorials` in order to gain an understanding of how the roboclaw.py script when importing the roboclaw module.
+
 1) Firstly ensure your motor controller is connected to your computer via USB. 
 
 2) Run the following lines of code in Python in order to initialize connection with motor controller. This both points to the desired ports, opens the port and then declares the address. 

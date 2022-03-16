@@ -14,6 +14,7 @@ Welcome to the Pegasus-Mini Documentation!
    :caption: Getting Started
 
    overview
+   getting_started_robot
    getting_started_python
    python_tutorials
    getting_started_ros
