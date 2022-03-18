@@ -173,7 +173,7 @@ class PegasusBase:
         
         rospy.init_node('pegasus_base_node', anonymous=True)
         
-        rospy.Subscriber("encoder", Int64MultiArray, self.cb_encoder)
+        #rospy.Subscriber("encoder", Int64MultiArray, self.cb_encoder)
         
         rospy.Subscriber("cmd_vel", Twist, self.cb_cmdvel)
         

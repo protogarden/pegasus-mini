@@ -2,7 +2,7 @@
 <launch>
     <!-- Arguments -->
 
-    <arg name="map_file" default="$(find pegasus_navigation)/maps/map.yaml"/>    
+    <arg name="map_file" default="$(find pegasus_navigation)/maps/workshop_test.yaml"/>    
 
     <param name="robot_description" textfile="$(find pegasus_base)/urdf/pegasus_mini.urdf" />
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" /> 
