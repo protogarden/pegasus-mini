@@ -65,6 +65,14 @@
       <geometry>
         <box size="0.001 0.001 0.001"/>
       </geometry>
+      <surface>
+        <friction>
+          <ode> 123
+            <mu>0.0</mu>
+            <mu2>0.0</mu2>
+          </ode>
+        </friction>
+      </surface>
       <material
         name="">
         <color
