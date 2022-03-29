@@ -4,4 +4,6 @@ The Pegasus Mini is a versatile mobile robot base designed for robotics research
 
 ![pegasus mini](docs/source/images/peggy.jpg)
 
+Buy the base kit now from [DIY Electronics](https://www.diyelectronics.co.za/store/robotics-kits/3918-protogarden-pegasus-mini-base-kit.html)
+
 Documentation : https://www.protogarden.io/pegasus/
