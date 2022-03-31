@@ -40,68 +40,68 @@
 
       </geometry>
     </collision>
-  </link>
+    </link>
 
-<link
-    name="frontcastor">
-    <inertial>
-      <origin
-        xyz="-5.72225387474662E-15 5.64825963778048E-15 -1.06852380645045E-16"
-        rpy="0 0 0" />
-      <mass
-        value="0.232013920708616" />
-      <inertia
-        ixx="0.000277320036972709"
-        ixy="-1.20216774398711E-17"
-        ixz="-1.01007354824876E-32"
-        iyy="0.000538249657591165"
-        iyz="1.19367335965887E-19"
-        izz="0.000277320036972708" />
-    </inertial>
-    <visual>
-      <origin
-        xyz="0.15 0 0"
-        rpy="1.5707 0 0" />
-      <geometry>
-        <box size="0.001 0.001 0.001"/>
-      </geometry>
-      <surface>
-        <friction>
-          <ode> 123
-            <mu>0.0</mu>
-            <mu2>0.0</mu2>
-          </ode>
-        </friction>
-      </surface>
-      <material
-        name="">
-        <color
-          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="1.5707 0 0" />
-      <geometry>
-        <cylinder length="0.02" radius="0.0375"/>
+  <link
+      name="frontcastor">
+      <inertial>
+        <origin
+          xyz="-5.72225387474662E-15 5.64825963778048E-15 -1.06852380645045E-16"
+          rpy="0 0 0" />
+        <mass
+          value="0.232013920708616" />
+        <inertia
+          ixx="0.000277320036972709"
+          ixy="-1.20216774398711E-17"
+          ixz="-1.01007354824876E-32"
+          iyy="0.000538249657591165"
+          iyz="1.19367335965887E-19"
+          izz="0.000277320036972708" />
+      </inertial>
+      <visual>
+        <origin
+          xyz="0.15 0 0"
+          rpy="1.5707 0 0" />
+        <geometry>
+          <box size="0.001 0.001 0.001"/>
+        </geometry>
+        <surface>
+          <friction>
+            <ode> 123
+              <mu>0.0</mu>
+              <mu2>0.0</mu2>
+            </ode>
+          </friction>
+        </surface>
+        <material
+          name="">
+          <color
+            rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
+        </material>
+      </visual>
+      <collision>
+        <origin
+          xyz="0 0 0"
+          rpy="1.5707 0 0" />
+        <geometry>
+          <cylinder length="0.02" radius="0.0375"/>
 
-      </geometry>
-            <surface>
-        <friction>
-          <ode>
-            <mu>0</mu>
-            <mu2>0</mu2>
-          </ode>
-        </friction>
-        <contact>
-          <ode>
-            <min_depth>0</min_depth>
-          </ode>
-        </contact>
-      </surface>
-    </collision>
-  </link>
+        </geometry>
+              <surface>
+          <friction>
+            <ode>
+              <mu>0</mu>
+              <mu2>0</mu2>
+            </ode>
+          </friction>
+          <contact>
+            <ode>
+              <min_depth>0</min_depth>
+            </ode>
+          </contact>
+        </surface>
+      </collision>
+      </link>
      
   <joint
     name="frontcastor_joint"
@@ -115,7 +115,82 @@
       link="frontcastor" />
     <axis
       xyz="0 1 0" />
-  </joint>
+    </joint>
+
+  <link
+      name="camera">
+      <inertial>
+        <origin
+          xyz="-5.72225387474662E-15 5.64825963778048E-15 -1.06852380645045E-16"
+          rpy="0 0 0" />
+        <mass
+          value="0.232013920708616" />
+        <inertia
+          ixx="0.000277320036972709"
+          ixy="-1.20216774398711E-17"
+          ixz="-1.01007354824876E-32"
+          iyy="0.000538249657591165"
+          iyz="1.19367335965887E-19"
+          izz="0.000277320036972708" />
+      </inertial>
+      <visual>
+        <origin
+          xyz="0.15 0 0"
+          rpy="1.5707 0 0" />
+        <geometry>
+          <box size="0.001 0.001 0.001"/>
+        </geometry>
+        <surface>
+          <friction>
+            <ode> 123
+              <mu>0.0</mu>
+              <mu2>0.0</mu2>
+            </ode>
+          </friction>
+        </surface>
+        <material
+          name="">
+          <color
+            rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
+        </material>
+      </visual>
+      <collision>
+        <origin
+          xyz="0 0 0"
+          rpy="1.5707 0 0" />
+        <geometry>
+          <cylinder length="0.02" radius="0.0375"/>
+
+        </geometry>
+              <surface>
+          <friction>
+            <ode>
+              <mu>0</mu>
+              <mu2>0</mu2>
+            </ode>
+          </friction>
+          <contact>
+            <ode>
+              <min_depth>0</min_depth>
+            </ode>
+          </contact>
+        </surface>
+      </collision>
+      </link>
+     
+  <joint
+    name="camera_joint"
+    type="fixed">
+    <origin
+      xyz="0.3 0 0.098"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="camera" />
+    <axis
+      xyz="0 1 0" />
+    </joint>
   
 
 
@@ -159,7 +234,7 @@
 
       </geometry>
     </collision>
-  </link>
+    </link>
      
   <joint
     name="leftwheel_joint"
@@ -173,7 +248,7 @@
       link="leftwheel_link" />
     <axis
       xyz="0 1 0" />
-  </joint>
+    </joint>
      
   <link
     name="rightwheel_link">
@@ -213,7 +288,7 @@
             <cylinder length="0.02" radius="0.0625"/>
       </geometry>
     </collision>
-  </link>
+    </link>
      
   <joint
     name="rightwheel_joint"
@@ -227,7 +302,7 @@
       link="rightwheel_link" />
     <axis
       xyz="0 1 0" />
-  </joint>
+    </joint>
      
   <link
     name="laser">
@@ -268,7 +343,7 @@
 
       </geometry>
     </collision>
-  </link>
+    </link>
      
   <joint
     name="laser_joint"
@@ -282,41 +357,43 @@
       link="laser" />
     <axis
       xyz="0 0 0" />
-  </joint>
-       <gazebo reference="laser">
-    <sensor type="gpu_ray" name="head_hokuyo_sensor">
-      <pose>0 0 0 0 0 0</pose>
-      <visualize>true</visualize>
-      <update_rate>20</update_rate>
-      <ray>
-        <scan>
-          <horizontal>
-            <samples>720</samples>
-            <resolution>1</resolution>
-            <min_angle>-3.1467</min_angle>
-            <max_angle>3.1467</max_angle>
-          </horizontal>
-        </scan>
-        <range>
-          <min>0.10</min>
-          <max>12.0</max>
-          <resolution>0.01</resolution>
-        </range>
-        <noise>
-          <type>gaussian</type>
-          <mean>0.0</mean>
-          <stddev>0.01</stddev>
-        </noise>
-      </ray>
-      <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_gpu_laser.so">
-        <topicName>/scan</topicName>
-        <frameName>laser</frameName>
-      </plugin>
-    </sensor>
+    </joint>
+
+
+  <gazebo reference="laser">
+<sensor type="gpu_ray" name="head_hokuyo_sensor">
+  <pose>0 0 0 0 0 0</pose>
+  <visualize>true</visualize>
+  <update_rate>20</update_rate>
+  <ray>
+    <scan>
+      <horizontal>
+        <samples>720</samples>
+        <resolution>1</resolution>
+        <min_angle>-3.1467</min_angle>
+        <max_angle>3.1467</max_angle>
+      </horizontal>
+    </scan>
+    <range>
+      <min>0.10</min>
+      <max>12.0</max>
+      <resolution>0.01</resolution>
+    </range>
+    <noise>
+      <type>gaussian</type>
+      <mean>0.0</mean>
+      <stddev>0.01</stddev>
+    </noise>
+  </ray>
+  <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_gpu_laser.so">
+    <topicName>/scan</topicName>
+    <frameName>laser</frameName>
+  </plugin>
+</sensor>
   </gazebo>
   
      
-    <gazebo>
+  <gazebo>
     <plugin filename="libgazebo_ros_diff_drive.so" name="differential_drive_controller_front">
       <rosDebugLevel>Debug</rosDebugLevel>
       <publishWheelTF>True</publishWheelTF>
