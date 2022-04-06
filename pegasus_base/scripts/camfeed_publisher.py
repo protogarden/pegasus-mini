@@ -64,8 +64,9 @@ def apriltag_video(input_streams=[0], # For default cam use -> [0]
     fy = 3129.52243
     cx = 359.097908
     cy = 239.736909
+  
     cam_info = CameraInfo()
-    
+  
     
 
     camera_matrix = [fx, 0, cx, 0, fy, cy, 0, 0, 1]
@@ -94,7 +95,7 @@ def apriltag_video(input_streams=[0], # For default cam use -> [0]
 
 
         # Main host-side application loop
-        while True:
+        while not rospy.is_shutdown():
             # we try to fetch the data from nn/rgb queues. tryGet will return either the data packet or None if there isn't any
             in_rgb = q_rgb.tryGet()
         
