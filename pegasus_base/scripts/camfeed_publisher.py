@@ -83,6 +83,7 @@ def apriltag_video(input_streams=[0], # For default cam use -> [0]
 
     # Here, some of the default values are defined. Frame will be an image from "rgb" stream, detections will contain nn results
         frame = None
+        rate = rospy.Rate(10)
 
         
     #detections = []
@@ -109,7 +110,7 @@ def apriltag_video(input_streams=[0], # For default cam use -> [0]
 
                 img = frame
                 img_msg = Image()
-                stamp = rospy.Time.from_sec(time.time())
+                stamp = rospy.Time.now()
                 img_msg.height = img.shape[0]
                 img_msg.width = img.shape[1]
                 img_msg.step = img.strides[0]
@@ -125,6 +126,7 @@ def apriltag_video(input_streams=[0], # For default cam use -> [0]
 
         #publish the camera info messages first
                 cam_pub.publish(cam_info)
+                rate.sleep()
         
           
                
