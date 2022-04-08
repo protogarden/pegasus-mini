@@ -18,7 +18,9 @@ xoutVideo.setStreamName("video")
 # Properties
 camRgb.setBoardSocket(dai.CameraBoardSocket.RGB)
 camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
-camRgb.setVideoSize(500, 500)
+x_cam = 1920/2
+y_cam = 1080/2
+camRgb.setVideoSize(1920, 1080)
 
 xoutVideo.input.setBlocking(False)
 xoutVideo.input.setQueueSize(1)
@@ -27,11 +29,11 @@ cam_info = CameraInfo()
 
 
 
-camera_matrix = [692.197324430714, 0.0, 272.85376299724896, 0.0, 666.8629839228164, 268.4270301686383, 0.0, 0.0, 1.0]
+camera_matrix = [712.1036081760766, 0.0, 467.68377603664027, 0.0, 712.403233695187, 269.04193985198145, 0.0, 0.0, 1.0]
 cam_info.K = camera_matrix
-cam_info.D = [0.21989472450195113, -0.9680733520754665, 0.03908595310462266, 0.006195633961802485, 0.0]
+cam_info.D = [0.021533613848944824, -0.09687445622248622, 0.002708932663089853, -0.004650287718603307, 0.0]
 cam_info.R = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
-cam_info.P = [709.3319702148438, 0.0, 275.65464230645375, 0.0, 0.0, 668.7578125, 280.5455521137919, 0.0, 0.0, 0.0, 1.0, 0.0]
+cam_info.P = [703.6085815429688, 0.0, 461.8930612015138, 0.0, 0.0, 714.2974853515625, 270.0070402640449, 0.0, 0.0, 0.0, 1.0, 0.0]
 
 
 # Linking
@@ -49,7 +51,8 @@ with dai.Device(pipeline) as device:
 
     while True:
         videoIn = video.get()
-        img = videoIn.getCvFrame()
+        i = videoIn.getCvFrame()
+        img =cv2.resize(i,(960,540))
         img_msg = Image()
         stamp = rospy.Time.now()
         img_msg.height = img.shape[0]
@@ -75,3 +78,16 @@ with dai.Device(pipeline) as device:
 
         if cv2.waitKey(1) == ord('q'):
             break
+
+'''
+
+Oak-D parameters with the above config: 
+
+D = [0.021533613848944824, -0.09687445622248622, 0.002708932663089853, -0.004650287718603307, 0.0]
+K = [712.1036081760766, 0.0, 467.68377603664027, 0.0, 712.403233695187, 269.04193985198145, 0.0, 0.0, 1.0]
+R = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+P = [703.6085815429688, 0.0, 461.8930612015138, 0.0, 0.0, 714.2974853515625, 270.0070402640449, 0.0, 0.0, 0.0, 1.0, 0.0]
+
+'''
+
+
