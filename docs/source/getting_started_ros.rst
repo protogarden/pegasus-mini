@@ -2,6 +2,9 @@
 Getting Started with ROS
 ########################
 
+.. _software_setup:
+
+
 ROS Software Setup
 ++++++++++++++++++
 
@@ -65,47 +68,78 @@ Install ROS Melodic:
 
 9. Creating Catkin Workspace:
 
-    9.1. Make directory for workspace:
+9.1. Make directory for workspace:
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        mkdir -p ~/ws_(workspacename)/src
-        cd ~/ws_(workspacename)/src
+    mkdir -p ~/ws_(workspacename)/src
+    cd ~/ws_(workspacename)/src
 
-    9.2. Install pegasus-mini package and various other dependent packages:
+9.2. Install pegasus-mini package and various other dependent packages:
 
-    .. code-block:: bash        
+.. code-block:: bash        
 
-        git clone https://github.com/protogarden/pegasus-mini.git
-        sudo apt install ros-melodic-rplidar-ros
-        sudo apt-get install ros-melodic-joy ros-melodic-joystick-drivers
-        sudo apt install ros-melodic-teleop-twist-joy
-        sudo apt install python3-pip
-        sudo pip3 install tornado
-        sudo pip3 install psutil
-        sudo pip3 install simplejpeg
-        sudo pip3 install rospkg
-        git clone https://github.com/dheera/rosboard.git
-        sudo apt-get install ros-melodic-cartographer ros-melodic-cartographer-ros ros-melodic-cartographer-ros-msgs ros-melodic-cartographer-rviz
-        rosdep install -y --from-paths . --ignore-src --rosdistro melodic
+    git clone https://github.com/protogarden/pegasus-mini.git
+    sudo apt install ros-melodic-rplidar-ros
+    sudo apt-get install ros-melodic-joy ros-melodic-joystick-drivers
+    sudo apt install ros-melodic-teleop-twist-joy
+    sudo apt install python3-pip
+    sudo pip3 install tornado
+    sudo pip3 install psutil
+    sudo pip3 install simplejpeg
+    sudo pip3 install rospkg
+    git clone https://github.com/dheera/rosboard.git
+    sudo apt-get install ros-melodic-cartographer ros-melodic-cartographer-ros ros-melodic-cartographer-ros-msgs ros-melodic-cartographer-rviz
+    rosdep install -y --from-paths . --ignore-src --rosdistro melodic
 
-    9.3. Build Catkin Workspace:
+9.3. Build Catkin Workspace:
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        cd ~/ws_(workspacename)
-        catkin config --extend /opt/ros/${ROS_DISTRO} --cmake-args -DCMAKE_BUILD_TYPE=Release
-        catkin build
+    cd ~/ws_(workspacename)
+    catkin config --extend /opt/ros/${ROS_DISTRO} --cmake-args -DCMAKE_BUILD_TYPE=Release
+    catkin build
 
-    9.4. Source Workspace:
+9.4. Source Workspace:
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        echo "source ~/ws_(workspacename)/devel/setup.bash" >> ~/.bashrc
-        source ~/.bashrc
+    echo "source ~/ws_(workspacename)/devel/setup.bash" >> ~/.bashrc
+    source ~/.bashrc
 
 10. Add permissions to USB ports:
 
 .. code-block:: bash
 
     sudo adduser 'user' dialout
+
+Setting Up Remote ROS Client 
++++++++++++++++++++++++++++++
+
+In order to use ROS visual tools such as RVIZ and RQT while your Pegasus-Mini is doing what it does best, being mobile, you will need to setup a remote ROS client. You will need to install Ubuntu on this remote PC and follow the same steps to install ROS as you did for your Pegasus-Mini in :ref:`software_setup`. 
+
+.. note::
+    You need to find the IP ADDRESSES of on both your Pegasus-Mini and your remote PC. Do this by running the command [ifconfig] in terminal.
+
+
+You will need to run the following commands on both your Pegasus-Mini and your remote PC respectively. Note that you will have to run these command each time you open a terminal unless you add these commands to the .bashrc file. This will run them every time you open a terminal. 
+
+    .. list-table:: 
+        :widths: 20 50 50
+        :header-rows: 1
+        :align: center
+
+        * - Description
+          - Pegasus-Mini
+          - Remote PC 
+        * - ROS_MASTER_URINote that you will have to run these command each time you open a terminal unless you add these commands to the .bashrc file. This will run them every time you open a terminal. 
+          - export ROS_MASTER_URI = http://Pegasus-Mini_IP:11311
+          - export ROS_MASTER_URI = http://Pegasus-Mini_IP:11311
+        * -  ROS_IP
+          - export ROS_IP = Pegasus-Mini_IP
+          - export ROS_IP = Remote_PC_IP 
+
+.. note::
+    Note that you will have to run these command each time you open a terminal unless you add these commands to the .bashrc file. This will run them every time you open a terminal. Do this by running source ~/.bashrc after you have run the above commands. 
+
+            

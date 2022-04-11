@@ -26,14 +26,14 @@ The following documentation explains how to individually control the Pegasus-Min
 
 3. There are various types of motion commands that can be send to each motor (M1 and M2), these are as follows: 
 
-    3.1. Speed Command: The motors will try and get to the speed command (ticks/s) as fast as possible. Note that a postive value corresponds to a forward direction and a negative the opposite.
+    3.1. Speed Command: The motors will try and get to the speed command (ticks/s) as fast as possible. Note that a positive value corresponds to a forward direction and a negative the opposite.
 
     .. code-block:: python
 
         rc.SpeedM1(address, target_speed)
         rc.SpeedM2(address, target_speed)
 
-    3.2. Acceleration-Speed Command: The motors will accelerate/decelerate (ticks/s^2) to a target speed command (ticks/s). Note that acceletion value is of absoulte nature. 
+    3.2. Acceleration-Speed Command: The motors will accelerate/decelerate (ticks/s^2) to a target speed command (ticks/s). Note that acceleration value is of absolute nature. 
 
     .. code-block:: python 
 

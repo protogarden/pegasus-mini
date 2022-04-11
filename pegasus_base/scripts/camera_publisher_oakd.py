@@ -6,6 +6,10 @@ import depthai as dai
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import CameraInfo
 
+cam_port = rospy.get_param("/port")
+camera_type = rospy.get_param("/cam_type")
+rospy.loginfo("Int: %s, Float: %s, String: %s", int_var, float_var, string_var)
+
 # Create pipeline
 pipeline = dai.Pipeline()
 
@@ -18,19 +22,12 @@ xoutVideo.setStreamName("video")
 # Properties
 camRgb.setBoardSocket(dai.CameraBoardSocket.RGB)
 camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
-x_cam = 1920/2
-y_cam = 1080/2
 camRgb.setVideoSize(1920, 1080)
-
 xoutVideo.input.setBlocking(False)
 xoutVideo.input.setQueueSize(1)
 
 cam_info = CameraInfo()
-
-
-
-camera_matrix = [712.1036081760766, 0.0, 467.68377603664027, 0.0, 712.403233695187, 269.04193985198145, 0.0, 0.0, 1.0]
-cam_info.K = camera_matrix
+cam_info.K = [712.1036081760766, 0.0, 467.68377603664027, 0.0, 712.403233695187, 269.04193985198145, 0.0, 0.0, 1.0]
 cam_info.D = [0.021533613848944824, -0.09687445622248622, 0.002708932663089853, -0.004650287718603307, 0.0]
 cam_info.R = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
 cam_info.P = [703.6085815429688, 0.0, 461.8930612015138, 0.0, 0.0, 714.2974853515625, 270.0070402640449, 0.0, 0.0, 0.0, 1.0, 0.0]
@@ -49,7 +46,7 @@ with dai.Device(pipeline) as device:
     video = device.getOutputQueue(name="video", maxSize=1, blocking=False)
     rate = rospy.Rate(10)
 
-    while True:
+    while not rospy.is_shutdown():
         videoIn = video.get()
         i = videoIn.getCvFrame()
         img =cv2.resize(i,(960,540))

@@ -12,7 +12,7 @@ The following documentation describes the basics of getting started with Python,
 For this documentation it is recommended that you run Python on Ubuntu. 
 
 .. note::
-    The following documentation assumes that you have Ubuntu 16.10 or newer installed, either running independantly on a PC, or on a virtual machine. If you are completely new to Ubuntu, check out `Ubuntu Tutorials`_ for the basics, including imporantly using Terminal and navigating to folders and files.
+    The following documentation assumes that you have Ubuntu 16.10 or newer installed, either running independently on a PC, or on a virtual machine. If you are completely new to Ubuntu, check out `Ubuntu Tutorials`_ for the basics, including importantly using Terminal and navigating to folders and files.
 
 .. image:: /images/ubuntu-logo.png
     :align: center

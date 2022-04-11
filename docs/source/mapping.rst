@@ -2,9 +2,9 @@
 Pegasus-Mini Mapping
 #####################
 
-The mapping feature on the Pegasus-Mini allows the robot to drive around in an enviroment and create a 2D Map of the enviroment. It does this by utilizing the Google Cartographer package. 
-This package makes uses of various robot positioning data such as Lidar, Odometry and IMU * aswell as real-time simultaneous localization and mapping (SLAM). In order to perform mapping ensure that 
-the lidar scanner is connected to the Pegasus-Mini and you have been through :doc:`getting_started_ros` and installed all required dependancies.
+The mapping feature on the Pegasus-Mini allows the robot to drive around in an environment and create a 2D Map of the environment. It does this by utilizing the Google Cartographer package. 
+This package makes uses of various robot positioning data such as Lidar, Odometry and IMU * as well as real-time simultaneous localization and mapping (SLAM). In order to perform mapping ensure that 
+the lidar scanner is connected to the Pegasus-Mini and you have been through :doc:`getting_started_ros` and installed all required dependencies.
 
 1.	Run the Pegasus-Mini mapping launch file by running the following command: 
 
@@ -19,7 +19,7 @@ the lidar scanner is connected to the Pegasus-Mini and you have been through :do
 
 |
 
-3.  Move the Pegasus-Mini around slowing as described in :doc:`remote_control` by running the following command in a new terminal, in order to map your enviroment. 
+3.  Move the Pegasus-Mini around slowing as described in :doc:`remote_control` by running the following command in a new terminal, in order to map your environment. 
 
 .. code-block:: bash
 

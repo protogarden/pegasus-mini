@@ -2,8 +2,8 @@
 Retrieve Encoder Data
 ######################
 
-The Pegasus-Mini uses the BasicMicro Roboclaw 2x7A Motor Controller in order to control each of its drive motors, each having independant encoders. The motor controller uses these encoders inroder and provides roational information 
-such as motor ticks, aswell as motor speed, in the form of ticks per a second. A tick can be desribed as a change in anglular position of the motor. The Pegasus-Mini has 64 ticks per a rotation of its drive motors. The following desribes how to obtain this
+The Pegasus-Mini uses the BasicMicro Roboclaw 2x7A Motor Controller in order to control each of its drive motors, each having independent encoders. The motor controller uses these encoders in order and provides rotational information 
+such as motor ticks, as well as motor speed, in the form of ticks per a second. A tick can be described as a change in angular position of the motor. The Pegasus-Mini has 64 ticks per a rotation of its drive motors. The following describes how to obtain this
 data from the motor controller using Python.
 
 .. note::

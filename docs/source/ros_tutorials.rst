@@ -10,4 +10,5 @@ ROS Tutorials
    remote_control
    simulation
    mapping
+   navigation 
 

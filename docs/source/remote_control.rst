@@ -2,10 +2,10 @@
 Remote Control
 ##############
 
-The following desribes how to control the Pegasus Mini by using the ROS teleop_twist_keyboard package. See http://wiki.ros.org/teleop_twist_keyboard for full documentation. 
+The following describes how to control the Pegasus Mini by using the ROS teleop_twist_keyboard package. See http://wiki.ros.org/teleop_twist_keyboard for full documentation. 
 Ensure that all steps in the :doc:`getting_started_ros` have been completed. 
 
-This package takes keyboard inputs and publishs command velocity to the /cmd_vel ROS topic. The pegasus_base node subsribes to these command velocitys and publishes left and right wheel speed commands to the wheelspeed topic.
+This package takes keyboard inputs and publishes command velocity to the /cmd_vel ROS topic. The pegasus_base node subscribes to these command velocity's and publishes left and right wheel speed commands to the /wheelspeed topic.
 Finally the rc_node node subscribes to these wheel speed commands to sends them to the motor controller. 
 
 1.	Ensure that the ROS teleop_twist_keyboard package is installed. To do this, run the following command.
@@ -20,7 +20,7 @@ Finally the rc_node node subscribes to these wheel speed commands to sends them 
 
     roslaunch pegasus_base pegasus_base.launch
 
-2. Launch the ROS teleop_twist_keyboard package in a seperate terminal.
+2. Launch the ROS teleop_twist_keyboard package in a separate terminal.
 
 .. code-block:: bash
 
