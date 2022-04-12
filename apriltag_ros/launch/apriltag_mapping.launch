@@ -1,0 +1,17 @@
+<launch>
+
+    
+
+
+
+
+    <include file="$(find pegasus_base)/launch/pegasus_base_mapping.launch"/>
+    <include file="$(find apriltag_ros)/launch/continuous_detection.launch"/>  
+    <!-- Remap topic required by the node to custom topics -->
+
+ 
+
+    <!-- Optional: Subscribe to the compressed stream-->
+
+  
+</launch>

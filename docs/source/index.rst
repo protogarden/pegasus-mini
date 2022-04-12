@@ -20,6 +20,12 @@ Welcome to the Pegasus-Mini Documentation!
    getting_started_ros
    ros_tutorials
 
+.. toctree::
+   :maxdepth: 5
+   :caption: Features
+
+   apriltag_feature
+
 
 .. toctree::
    :maxdepth: 5
