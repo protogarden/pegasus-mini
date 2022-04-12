@@ -54,7 +54,7 @@ If you are using the OAK-D camera you will need to install the Oak-D depth ai mo
     python3 install_requirements.py
     source ~/.bashrc
 
-You now need to tell the Pegasus-Mini Apriltag package which tag family to look for, as well as their corresponding tag ID's. This can be done in the settings.yaml and tags.yaml files found in the /apriltag_ros/config directory.
+You now need to tell the Pegasus-Mini Apriltag package which tag family to look for, corresponding tag ID's and there respective sizes (m). This can be done in the settings.yaml and tags.yaml files found in the /apriltag_ros/config directory.
 
 .. image:: /images/apriltag/tag_36h11.png
     :align: center
