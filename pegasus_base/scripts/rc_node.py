@@ -180,7 +180,7 @@ class RoboClawInterface:
 
         while not rospy.is_shutdown():
 
-            self.rc.SpeedAccelM1M2(self.address, 8000 ,self.right_speed, self.left_speed)
+            self.rc.SpeedAccelM1M2(self.address, 80000 ,self.right_speed, self.left_speed)
 
             #self.rc.SpeedM1M2(self.address,self.right_speed, self.left_speed)    
 
