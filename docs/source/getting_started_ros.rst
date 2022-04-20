@@ -132,7 +132,7 @@ You will need to run the following commands on both your Pegasus-Mini and your r
         * - Description
           - Pegasus-Mini
           - Remote PC 
-        * - ROS_MASTER_URINote that you will have to run these command each time you open a terminal unless you add these commands to the .bashrc file. This will run them every time you open a terminal. 
+        * - ROS_MASTER_URI
           - export ROS_MASTER_URI = http://Pegasus-Mini_IP:11311
           - export ROS_MASTER_URI = http://Pegasus-Mini_IP:11311
         * -  ROS_IP
