@@ -3,6 +3,10 @@ import serial
 import string
 import math
 import sys
+import tf
+import tf2_ros
+import geometry_msgs.msg
+import time
 
 #from time import time
 from sensor_msgs.msg import Imu
@@ -13,6 +17,7 @@ from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 degrees2rad = math.pi/180.0
 imu_yaw_calibration = 0.0
+debug = 0
 
 # Callback for dynamic reconfigure requests
 def reconfig_callback(config, level):
@@ -23,7 +28,7 @@ def reconfig_callback(config, level):
     rospy.loginfo("Set imu_yaw_calibration to %d" % (imu_yaw_calibration))
     return config
 
-rospy.init_node("razor_node")
+rospy.init_node("imu_node")
 
 imuMsg = Imu()
 
@@ -64,17 +69,18 @@ imuMsg.linear_acceleration_covariance = [
 ]
 
 # read basic information
-port = rospy.get_param('~port', '/dev/ttyUSB0')
+port = rospy.get_param('~port', '/dev/ttyUSB1')
 topic = rospy.get_param('~topic', 'imu')
-frame_id = rospy.get_param('~frame_id', 'base_link')
+frame_id = rospy.get_param('~frame_id', 'base_imu_link')
 imu_yaw_calibration = rospy.get_param('~imu_yaw_calibration', 0.0)
 
 pub = rospy.Publisher(topic, Imu, queue_size=1)
+br = tf.TransformBroadcaster()
 
 # Check your COM port and baud rate
 rospy.loginfo("Opening %s...", port)
 try:
-    ser = serial.Serial(port=port, baudrate=57600, timeout=1)
+    ser = serial.Serial(port=port, baudrate=115200, timeout=1)
     #ser = serial.Serial(port=port, baudrate=57600, timeout=1, rtscts=True, dsrdtr=True) # For compatibility with some virtual serial ports (e.g. created by socat) in Python 2.7
 except serial.serialutil.SerialException:
     rospy.logerr("IMU not found at port "+port + ". Did you specify the correct port in the launch file?")
@@ -91,6 +97,7 @@ rospy.sleep(5) # Sleep for 5 seconds to wait for the board to boot
 rospy.loginfo("Flushing first 200 IMU entries...")
 for x in range(0, 200):
     line = bytearray(ser.readline()).decode("utf-8")
+   
 rospy.loginfo("Publishing IMU data...")
 #f = open("raw_imu_data.log", 'w')
 
@@ -121,9 +128,15 @@ while not rospy.is_shutdown():
             yaw_deg = yaw_deg - 360.0
         if yaw_deg < -180.0:
             yaw_deg = yaw_deg + 360.0
+        
+
+
+        pitch_deg = float(words[1])
+        roll_deg = float(words[2])
+        print(yaw_deg)
         yaw = yaw_deg*degrees2rad
-        pitch = -float(words[1])*degrees2rad
-        roll = float(words[2])*degrees2rad
+        pitch = pitch_deg*degrees2rad
+        roll = roll_deg*degrees2rad
 
         imuMsg.linear_acceleration.x = float(words[3])
         imuMsg.linear_acceleration.y = float(words[4])
@@ -143,6 +156,28 @@ while not rospy.is_shutdown():
     imuMsg.header.seq = seq
     seq = seq + 1
     pub.publish(imuMsg)
+    if debug == 1:
+        br = tf2_ros.TransformBroadcaster()
+        t = geometry_msgs.msg.TransformStamped()
+
+        t.header.stamp = rospy.Time.now()
+        t.header.frame_id = "odom"
+        t.child_frame_id = "imu_link"
+        t.transform.translation.x = 0.0
+        t.transform.translation.y = 0.0
+        t.transform.translation.z = 0.0
+        t.transform.rotation.x = q[0]
+        t.transform.rotation.y = q[1]
+        t.transform.rotation.z = q[2]
+        t.transform.rotation.w = q[3]
+
+        br.sendTransform(t)
+   
+
+    
+
+
+
 
         
 ser.close
