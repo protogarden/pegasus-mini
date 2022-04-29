@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import rospy
 import serial
 import string
@@ -69,9 +71,9 @@ imuMsg.linear_acceleration_covariance = [
 ]
 
 # read basic information
-port = rospy.get_param('~port', '/dev/ttyUSB1')
+port = rospy.get_param('~port', '/dev/ttyUSB0')
 topic = rospy.get_param('~topic', 'imu')
-frame_id = rospy.get_param('~frame_id', 'base_imu_link')
+frame_id = rospy.get_param('~frame_id', 'base_link')
 imu_yaw_calibration = rospy.get_param('~imu_yaw_calibration', 0.0)
 
 pub = rospy.Publisher(topic, Imu, queue_size=1)
@@ -92,7 +94,7 @@ pitch=0
 yaw=0
 seq=0
 rospy.loginfo("Giving IMU time to boot and converge")
-rospy.sleep(5) # Sleep for 5 seconds to wait for the board to boot
+rospy.sleep(10) # Sleep for 5 seconds to wait for the board to boot
 
 rospy.loginfo("Flushing first 200 IMU entries...")
 for x in range(0, 200):
@@ -134,6 +136,7 @@ while not rospy.is_shutdown():
         pitch_deg = float(words[1])
         roll_deg = float(words[2])
         print(yaw_deg)
+  
         yaw = yaw_deg*degrees2rad
         pitch = pitch_deg*degrees2rad
         roll = roll_deg*degrees2rad

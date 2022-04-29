@@ -138,6 +138,8 @@ if __name__ == '__main__':
         
         x_pose, y_pose = pose_update_staging()
 
+        '''
+
         while x_pose > 0.001:
 
             
@@ -155,8 +157,10 @@ if __name__ == '__main__':
 
             pub.publish(speed)
             x_pose, y_pose = pose_update_staging()
+        '''
 
 
+        x_pose, y_pose = pose_update_staging()
         angle_diff = math.atan(y_pose/x_pose)
 
         speed.linear.x = 0.0
@@ -183,7 +187,7 @@ if __name__ == '__main__':
         speed.linear.x = 0
         speed.angular.z = 0
         pub.publish(speed)
-
+        '''
         z_pose = pose_update_final()
 
         while z_pose > final_dist:
@@ -218,6 +222,6 @@ if __name__ == '__main__':
 
 
         rate.sleep()
-        break
-
+        #break
+        '''
 

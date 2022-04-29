@@ -1,6 +1,6 @@
-port: /dev/ttyUSB1
+port: /dev/ttyUSB0
 topic: imu
-frame_id: base_imu_link
+frame_id: base_link
 
 # AHRS to robot calibration
 imu_yaw_calibration: 0.0
