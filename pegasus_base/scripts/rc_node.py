@@ -176,13 +176,20 @@ class RoboClawInterface:
         rospy.Subscriber('wheelspeed', Int64MultiArray, self.cb_speedCallBack)
         self.rc.ResetEncoders(self.address)
         self.rc.SpeedAccelM1M2(self.address,0,0,0)   
+        count = 0
+
 
 
         while not rospy.is_shutdown():
 
-            self.rc.SpeedAccelM1M2(self.address, 80000 ,self.right_speed, self.left_speed)
+            if count == 5: #publish speed command every 10 iterations in order to increase speed odom calculation
+                #self.rc.SpeedAccelM1M2(self.address, 80000 ,self.right_speed, self.left_speed)
+                self.rc.SpeedM1M2(self.address,self.right_speed, self.left_speed)
+                count = 0
 
-            #self.rc.SpeedM1M2(self.address,self.right_speed, self.left_speed)    
+            count += 1
+
+             
 
             # read encoder data
             status1, enc1, crc1 = None, None, None
@@ -203,11 +210,11 @@ class RoboClawInterface:
             except OSError as e:
                 rospy.logwarn("ReadEncM2 OSError: %d", e.errno)
                 rospy.logdebug(e)
-
+        
             if enc1 != None and enc2 != None:
                 encoder_data.data = [enc1, enc2]
                 encoder_pub.publish(encoder_data)
-
+         
             self.update_publish(enc1, enc2)
 
 
@@ -221,7 +228,7 @@ class RoboClawInterface:
             #except Exception as e:
                 #print("Stats Error: " + str(e))
 
-            rate.sleep()
+            #rate.sleep()
 
         self.rc.SpeedAccelM1M2(self.address,0,0,0)    
 

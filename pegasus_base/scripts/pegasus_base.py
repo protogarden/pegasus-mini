@@ -126,7 +126,7 @@ class PegasusBase:
         self.encoder = None
         self.MAX_SPEED = 2
         self.TICKS_PER_METER = 8148.71
-        self.BASE_WIDTH = 0.25365
+        self.BASE_WIDTH = 0.25363
         self.left_speed = 0
         self.right_speed = 0
 
