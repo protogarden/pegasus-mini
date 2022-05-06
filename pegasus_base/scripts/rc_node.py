@@ -53,6 +53,9 @@ class RoboClawInterface:
 
         current_time = rospy.Time.now()
         d_time = (current_time - self.last_enc_time).to_sec()
+        freq = 1/d_time
+        if freq < 50:
+            print("chock")
         self.last_enc_time = current_time
        
        
@@ -162,7 +165,7 @@ class RoboClawInterface:
 
         rospy.init_node('roboclaw_interface_node', anonymous=True)
 
-        rate = rospy.Rate(100) # 10hz    
+        rate = rospy.Rate(200) # 10hz    
         self.last_enc_time = rospy.Time.now()
 
         # status publisher
@@ -182,9 +185,11 @@ class RoboClawInterface:
 
         while not rospy.is_shutdown():
 
-            if count == 5: #publish speed command every 10 iterations in order to increase speed odom calculation
-                #self.rc.SpeedAccelM1M2(self.address, 80000 ,self.right_speed, self.left_speed)
-                self.rc.SpeedM1M2(self.address,self.right_speed, self.left_speed)
+            
+
+            if count == 10: #publish speed command every 10 iterations in order to increase speed odom calculation
+                self.rc.SpeedAccelM1M2(self.address, 3000 ,self.right_speed, self.left_speed)
+                #self.rc.SpeedM1M2(self.address,self.right_speed, self.left_speed)
                 count = 0
 
             count += 1

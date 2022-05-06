@@ -56,7 +56,7 @@ if camera_type == "oak_d":
         
 
         video = device.getOutputQueue(name="video", maxSize=1, blocking=False)
-        rate = rospy.Rate(100)
+        rate = rospy.Rate(5)
         rospy.loginfo("/port: %s, /cam_type: %s", cam_port, camera_type)
 
         while not rospy.is_shutdown():

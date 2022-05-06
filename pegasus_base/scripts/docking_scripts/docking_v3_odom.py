@@ -18,6 +18,9 @@ pid_staging_1_angular.output_limits = (-0.1, 0.1)
 pid_staging_1_linear = PID(0.5, 0, 0, setpoint=0) #PID that controls staging angular velocity 
 pid_staging_1_linear.output_limits = (-0.08, 0.08)
 
+pid_staging_2_linear = PID(0.3, 0, 0, setpoint=0) #PID that controls staging angular velocity 
+pid_staging_2_linear.output_limits = (-0.05, 0.05)
+
 pid_staging_2_angular = PID(0.4, 0, 0, setpoint=0) #PID that controls staging angular velocity 
 pid_staging_2_angular.output_limits = (-0.1, 0.1)
 
@@ -32,11 +35,11 @@ right_tag = 'RIGHT-TAG'
 alignment_docking_tag_name = 'TAG'
 odom_frame = 'odom'
 base_link_frame = 'base_link'
-camera_link = 'camera'
+camera_link = 'base_link'
 stage_1_dist = 0.8
 stage_2_dist = 0.6
-stage_3_dist = 0.5
-probe_offset = 0.0001
+stage_3_dist = 0.45
+
 final_dist = 0.07
 angle_thresh = 1 #initial staging thresh
 
@@ -44,7 +47,7 @@ angle_thresh_2 = 0.01 #second staging thresh
 angle_thresh_3 = 0.01
 angle_thresh_4 = 0.01
 angle_thresh_2_align = 0.05
-angle_thresh_3_align = 0.5
+angle_thresh_3_align = 0.008
 
 current_xpose = 0
 current_ypose = 0
@@ -300,7 +303,7 @@ if __name__ == '__main__':
         speed.linear.x = 0
         speed.angular.z = 0
         pub.publish(speed)
-        time.sleep(0.1)
+        time.sleep(0.5)
 
         print('pointing towards goal pose - Stage 1')
         #print('goal thetha', goal_thetha)
@@ -383,7 +386,7 @@ if __name__ == '__main__':
                 speed.linear.x = 0
                 speed.angular.z = 0
                 pub.publish(speed)
-                time.sleep(1.5)
+                time.sleep(2)
 
                 print("tag detected , turning towards Stage-2 offset")
                 
@@ -448,6 +451,7 @@ if __name__ == '__main__':
         speed.linear.x = 0
         speed.angular.z = 0
         pub.publish(speed)
+        
 
 
         ##stage 2.1: Turning tp angle at distance to docking
@@ -485,7 +489,7 @@ if __name__ == '__main__':
                 speed.linear.x = 0
                 speed.angular.z = 0
                 pub.publish(speed)
-                time.sleep(1.5)
+                time.sleep(2)
                 print("tag detected , turning towards Stage-3 offset")
                 
                 goal_xpose, goal_ypose, goal_thetha = pose_update_staging(stage_3_dist)
@@ -526,7 +530,7 @@ if __name__ == '__main__':
         print('pointing towards goal pose - Stage 3')
         print('moving towards goal pose - Stage 3')
 
-        while sqrt(pow((goal_xpose - current_xpose), 2) + pow((goal_ypose - current_ypose), 2)) > 0.02:
+        while sqrt(pow((goal_xpose - current_xpose), 2) + pow((goal_ypose - current_ypose), 2)) > 0.025:
 
             
 
@@ -595,7 +599,7 @@ if __name__ == '__main__':
                     angle_diff = math.atan(y_pose/x_pose)
                     stage_angular_speed = -pid_staging_2_angular(angle_diff)
                     speed.linear.x = 0.0
-                    speed.angular.z = stage_angular_speed/8
+                    speed.angular.z = stage_angular_speed
                     #print("x_pose",x_pose)
                     #print("angle_diff",angle_diff)
 
@@ -608,15 +612,20 @@ if __name__ == '__main__':
 
 
             pub.publish(speed)
+
+        speed.linear.x = 0
+        speed.angular.z = 0
+        pub.publish(speed)
+      
         time.sleep(0.1)
         x_pose, y_pose, z_pose = pose_update_alignment()
 
-        while z_pose > final_dist:
+        while z_pose > 0.08:
             print(z_pose)
             x_pose, y_pose, z_pose = pose_update_alignment()
             angle_diff = math.atan(y_pose/x_pose)
-            stage_linear_speed = -pid_staging_1_linear(z_pose)/4
-            stage_angular_speed = 0
+            stage_linear_speed = -pid_staging_2_linear(z_pose)
+            stage_angular_speed = -pid_staging_2_angular(angle_diff)
             speed.linear.x = stage_linear_speed
             speed.angular.z = stage_angular_speed
             pub.publish(speed)
@@ -628,7 +637,7 @@ if __name__ == '__main__':
         pub.publish(speed)
 
 
-
+      
         rate.sleep()
    
         break

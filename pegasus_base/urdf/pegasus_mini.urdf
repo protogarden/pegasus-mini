@@ -350,7 +350,7 @@
     type="fixed">
     <origin
       xyz="0.24679 0 0.098"
-      rpy="0 0 3.1415" /> <!-- Rotate Laser Frame about 180 about z to match RPLidar defualt laser frame -->
+      rpy="0 0 3.14159" /> <!-- Rotate Laser Frame about 180 about z to match RPLidar defualt laser frame -->
     <parent
       link="base_link" />
     <child
