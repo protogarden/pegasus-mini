@@ -5,11 +5,18 @@ Adafruit_Sensor *accelerometer, *gyroscope, *magnetometer;
 
 #include "NXP_FXOS_FXAS.h" 
 
-float gx_off = 0.0108;
-float gy_off = -0.0127;
-float gz_off = 0.0034;
+float min_x, max_x, mid_x;
+float min_y, max_y, mid_y;
+float min_z, max_z, mid_z;
+
+#define NUMBER_SAMPLES 1000
+
+float gx_off = 0;
+float gy_off = 0;
+float gz_off = 0;
 
 int debug = 0; 
+const int power_pin = D6;
 
 
 
@@ -25,7 +32,7 @@ uint32_t delt_t = 0; // used to control display output rate
 uint32_t count = 0;  // used to control display output rate
 float pitch, yaw, roll;
 // parameters for 6 DoF sensor fusion calculations
-float GyroMeasError = PI * (3.0f / 180.0f);     // gyroscope measurement error in rads/s (start at 60 deg/s), then reduce after ~10 s to 3
+float GyroMeasError = PI * (60.0f / 180.0f);     // gyroscope measurement error in rads/s (start at 60 deg/s), then reduce after ~10 s to 3
 float beta = sqrt(3.0f / 4.0f) * GyroMeasError;  // compute beta
 float GyroMeasDrift = PI * (0.0f / 180.0f);      // gyroscope measurement drift in rad/s/s (start at 0.0 deg/s/s)
 float zeta = sqrt(3.0f / 4.0f) * GyroMeasDrift;  // compute zeta, the other free parameter in the Madgwick scheme usually set to a small or zero value
@@ -35,6 +42,11 @@ uint32_t Now = 0;                                 // used to calculate integrati
 
 
 void setup() {
+  pinMode(power_pin, OUTPUT);
+  digitalWrite(power_pin, LOW);
+  delay(100);
+  digitalWrite(power_pin, HIGH);
+  delay(100);
   Serial.begin(115200);
   while (!Serial) yield();
 
@@ -48,6 +60,49 @@ void setup() {
   magnetometer->printSensorDetails();
 
   setup_sensors();
+  sensors_event_t accel, gyro, mag;
+  float x, y, z;
+  for (uint16_t sample = 0; sample < NUMBER_SAMPLES; sample++) {
+    gyroscope->getEvent(&gyro);
+    x = gyro.gyro.x;
+    y = gyro.gyro.y;
+    z = gyro.gyro.z;
+    Serial.print(F("Gyro: ("));
+    Serial.print(x); Serial.print(", ");
+    Serial.print(y); Serial.print(", ");
+    Serial.print(z); Serial.print(")");
+
+    min_x = min(min_x, x);
+    min_y = min(min_y, y);
+    min_z = min(min_z, z);
+  
+    max_x = max(max_x, x);
+    max_y = max(max_y, y);
+    max_z = max(max_z, z);
+  
+    mid_x = (max_x + min_x) / 2;
+    mid_y = (max_y + min_y) / 2;
+    mid_z = (max_z + min_z) / 2;
+
+    Serial.print(F(" Zero rate offset: ("));
+    Serial.print(mid_x, 4); Serial.print(", ");
+    Serial.print(mid_y, 4); Serial.print(", ");
+    Serial.print(mid_z, 4); Serial.print(")");  
+  
+    Serial.print(F(" rad/s noise: ("));
+    Serial.print(max_x - min_x, 3); Serial.print(", ");
+    Serial.print(max_y - min_y, 3); Serial.print(", ");
+    Serial.print(max_z - min_z, 3); Serial.println(")");   
+    delay(10);
+  }
+  Serial.println(F("\n\nFinal zero rate offset in radians/s: "));
+  Serial.print(mid_x, 4); Serial.print(", ");
+  Serial.print(mid_y, 4); Serial.print(", ");
+  Serial.println(mid_z, 4);
+  gx_off = mid_x;
+  gy_off = mid_y;
+  gz_off = mid_z;
+  
 
 
 
@@ -76,10 +131,12 @@ void loop() {
   Now = micros();
   deltat = ((Now - lastUpdate) / 1000000.0f); // set integration time by time elapsed since last filter update
   lastUpdate = Now;
-  //    if(lastUpdate - firstUpdate > 10000000uL) {
-  //      beta = 0.041; // decrease filter gain after stabilized
-  //      zeta = 0.015; // increase gyro bias drift gain after stabilized
-  //    }
+  if(lastUpdate - firstUpdate > 10000000uL) {
+    GyroMeasError = PI * (0.0f / 180.0f);     // gyroscope measurement error in rads/s (start at 60 deg/s), then reduce after ~10 s to 3
+    beta = sqrt(3.0f / 4.0f) * GyroMeasError;  // compute beta
+    GyroMeasDrift = PI * (0.045f / 180.0f);      // gyroscope measurement drift in rad/s/s (start at 0.0 deg/s/s)
+    zeta = sqrt(3.0f / 4.0f) * GyroMeasDrift; 
+  }
   // Pass gyro rate as rad/s
   MadgwickQuaternionUpdate(accel.acceleration.x, accel.acceleration.y, accel.acceleration.z, gyrox_cal, gyroy_cal, gyroz_cal);
 
@@ -97,12 +154,12 @@ void loop() {
 
      
     Serial.print("YPRAxAyAzGxGyGz=");
-    Serial.print(float(yaw)); Serial.print(",");
+    Serial.print(yaw); Serial.print(",");
     Serial.print(pitch); Serial.print(",");
     Serial.print(roll); Serial.print(",");
   
-    Serial.print(String(accel.acceleration.x, 4)); Serial.print(",");
-    Serial.print(String(accel.acceleration.y, 4)); Serial.print(",");
+    Serial.print(accel.acceleration.x, 4); Serial.print(",");
+    Serial.print(accel.acceleration.y, 4); Serial.print(",");
     Serial.print(accel.acceleration.z, 4); Serial.print(",");
 
     Serial.print(gyrox_cal, 3); Serial.print(",");
