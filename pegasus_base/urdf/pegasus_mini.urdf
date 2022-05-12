@@ -182,7 +182,7 @@
     name="camera_joint"
     type="fixed">
     <origin
-      xyz="0.3 0 0.098"
+      xyz="0.34 0 0.098"
       rpy="-1.5707 0 -1.5707" />
     <parent
       link="base_link" />

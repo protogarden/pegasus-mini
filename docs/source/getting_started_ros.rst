@@ -17,7 +17,7 @@ Install ROS Melodic:
 
 .. code-block:: bash
 
-    sudo apt-get update download package information from all configured sources.
+    sudo apt-get update #download package information from all configured sources.
     sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 
 2. Set up your keys:
@@ -54,7 +54,7 @@ Install ROS Melodic:
 
 7. Initialize rosdep:
 
-.. code-block::
+.. code-block:: bash
 
     sudo apt install python-rosdep
     sudo rosdep init

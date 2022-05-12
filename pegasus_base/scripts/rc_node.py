@@ -188,7 +188,7 @@ class RoboClawInterface:
             
 
             if count == 10: #publish speed command every 10 iterations in order to increase speed odom calculation
-                self.rc.SpeedAccelM1M2(self.address, 3000 ,self.right_speed, self.left_speed)
+                self.rc.SpeedAccelM1M2(self.address, 6000 ,self.right_speed, self.left_speed)
                 #self.rc.SpeedM1M2(self.address,self.right_speed, self.left_speed)
                 count = 0
 

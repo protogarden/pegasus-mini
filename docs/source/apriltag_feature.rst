@@ -18,7 +18,7 @@ One of the Pegasus-Mini's many features its ability to use of the `apriltag_ros`
     :align: center
     :width: 400
 
-AprilTag is a visual fiducial system, useful for a wide variety of tasks including augmented reality, robotics, and camera calibration. There are various April Tag family's. Each April tag family has a series of tags with there own unique identity's. The family's can be seen in the following image:
+AprilTag is a visual fiducial system, useful for a wide variety of tasks including augmented reality, robotics, and camera calibration. There are various April Tag family's. Each April tag family has a series of tags with there own unique identity's. The family's can be seen in the above image:
 
 .. note::
     Each April tag family has a series of tags with there own unique identity's. The Pegasus-Mini Apriltag package has the ability to use tagStandard52h13, tagStandard41h12, tag36h11, tag25h9, tag16h5, tagCustom48h12, tagCircle21h7 and tagCircle49h12 family's. 
