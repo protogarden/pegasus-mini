@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import rospy
 import yaml
@@ -7,6 +7,7 @@ import os
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import CameraInfo
 from cv_bridge import CvBridge, CvBridgeError
+import time
 
 """ 
 gstreamer_pipeline returns a GStreamer pipeline for capturing from the CSI camera
@@ -17,11 +18,11 @@ Default 1920x1080 displayd in a 1/4 size window
 
 def gstreamer_pipeline(
     sensor_id=0,
-    capture_width=1920,
-    capture_height=1080,
-    display_width=960,
-    display_height=540,
-    framerate=30,
+    capture_width=1280,
+    capture_height=720,
+    display_width=640,
+    display_height=360,
+    framerate=10,
     flip_method=0,
 ):
     return (
@@ -54,10 +55,10 @@ rospy.init_node('camera_pub')
 #camera_type = rospy.get_param("/cam_type")
 
 cam_standard_info = CameraInfo()
-cam_standard_info.K = [1349.9794444263002, 0.0, 480.48041994199133, 0.0, 1360.4815456658516, 210.60033921891642, 0.0, 0.0, 1.0]
-cam_standard_info.D = [0.19156312530171377, 0.23286435270547165, -0.038729409593406025, -0.007362024572838043, 0.0]
+cam_standard_info.K = [673.2482675259557, 0.0, 329.80724044927996, 0.0, 675.6751413943377, 180.66056825004506, 0.0, 0.0, 1.0]
+cam_standard_info.D = [0.21887280107995002, -0.4072944753663401, -0.00013698773470533307, 0.0009668096667496951, 0.0]
 cam_standard_info.R = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
-cam_standard_info.P = [1406.226806640625, 0.0, 477.01202548989386, 0.0, 0.0, 1401.7950439453125, 200.36270295957365, 0.0, 0.0, 0.0, 1.0, 0.0]
+cam_standard_info.P = [693.0473022460938, 0.0, 330.2610844036044, 0.0, 0.0, 696.1262817382812, 180.62339938821424, 0.0, 0.0, 0.0, 1.0, 0.0]
 
 
 
@@ -68,20 +69,33 @@ cam_standard_info.P = [1406.226806640625, 0.0, 477.01202548989386, 0.0, 0.0, 140
 def pub_camera():
     video_capture = cv2.VideoCapture(gstreamer_pipeline(flip_method=0), cv2.CAP_GSTREAMER)
     img_pub = rospy.Publisher('/camera_pub/image_rect', Image, queue_size = 10)
-    cam_pub = rospy.Publisher('/camera_pub/camera_info', CameraInfo, queue_size = 10)
+    cam_pub = rospy.Publisher('/camera_pub/camera_info', CameraInfo, queue_size = 1)
     rospy.init_node('camera_pub')
     bridge = CvBridge()
-    rate = rospy.Rate(50)
+    
+
+
+    fps = video_capture.get(cv2.CAP_PROP_FPS)
+    print("FPS",fps)
+    rate = rospy.Rate(fps)
+  
+    
     
 
     if video_capture.isOpened():
 
         while not rospy.is_shutdown():
             ret_val, frame = video_capture.read()
-            
+            #img = cv2.resize(frame,(960,540))
+
+            #frame =cv2.resize(frame,(960,540))
+            #cv2.imshow('frame', frame)
   
             stamp = rospy.Time.now()
-            img_msg = bridge.cv2_to_imgmsg(frame, "bgr8")
+            img_msg = bridge.cv2_to_imgmsg(frame, "rgb8")
+            img_msg.header.stamp = stamp
+            img_msg.header.frame_id = 'camera'
+            
             
             img_pub.publish(img_msg)
 
@@ -90,12 +104,14 @@ def pub_camera():
 
             #publish the camera info messages first
             cam_pub.publish(cam_standard_info)
-            #cv2.imshow('frame', frame)
+            
             rate.sleep()
+
+ 
+           
         
 
-            if cv2.waitKey(1) == ord('q'):
-                break
+           
 
     else:
         print("Error: Unable to open camera")
@@ -104,5 +120,10 @@ def pub_camera():
 if __name__ == "__main__":
     pub_camera()
 
-
+'''
+D = [0.21887280107995002, -0.4072944753663401, -0.00013698773470533307, 0.0009668096667496951, 0.0]
+K = [673.2482675259557, 0.0, 329.80724044927996, 0.0, 675.6751413943377, 180.66056825004506, 0.0, 0.0, 1.0]
+R = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+P = [693.0473022460938, 0.0, 330.2610844036044, 0.0, 0.0, 696.1262817382812, 180.62339938821424, 0.0, 0.0, 0.0, 1.0, 0.0]
+'''
 

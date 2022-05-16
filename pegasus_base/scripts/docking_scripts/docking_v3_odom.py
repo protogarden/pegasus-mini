@@ -12,20 +12,20 @@ import math
 import time
 from simple_pid import PID
 
-pid_staging_1_angular = PID(0.3, 0, 0, setpoint=0) #PID that controls staging angular velocity 
-pid_staging_1_angular.output_limits = (-0.1, 0.1)
 
-pid_staging_1_linear = PID(0.5, 0, 0, setpoint=0) #PID that controls staging angular velocity 
-pid_staging_1_linear.output_limits = (-0.08, 0.08)
 
-pid_staging_2_linear = PID(0.3, 0, 0, setpoint=0) #PID that controls staging angular velocity 
-pid_staging_2_linear.output_limits = (-0.05, 0.05)
+pid_staging_alignment = PID(0.6, 0, 0, setpoint=0) #PID that controls staging angular velocity 
+pid_staging_alignment.output_limits = (-0.2, 0.2)
 
-pid_staging_2_angular = PID(0.4, 0, 0, setpoint=0) #PID that controls staging angular velocity 
-pid_staging_2_angular.output_limits = (-0.1, 0.1)
+pid_staging_tag_detect = PID(0.6, 0, 0, setpoint=0) #PID that controls staging angular velocity 
+pid_staging_tag_detect.output_limits = (-0.3, 0.3)
 
-pid_staging_3_angular = PID(0.5, 0, 0, setpoint=0) #PID that controls staging angular velocity 
-pid_staging_3_angular.output_limits = (-0.1, 0.1)
+pid_staging_angular = PID(0.3, 0, 0, setpoint=0) #PID that controls staging angular velocity 
+pid_staging_angular.output_limits = (-0.1, 0.1)
+
+pid_staging_linear = PID(0.5, 0, 0, setpoint=0) #PID that controls staging angular velocity 
+pid_staging_linear.output_limits = (-0.08, 0.08)
+
 
 
 
@@ -38,7 +38,7 @@ base_link_frame = 'base_link'
 camera_link = 'base_link'
 stage_1_dist = 0.8
 stage_2_dist = 0.6
-stage_3_dist = 0.45
+stage_3_dist = 0.5
 
 final_dist = 0.07
 angle_thresh = 1 #initial staging thresh
@@ -278,7 +278,7 @@ if __name__ == '__main__':
 
         ##stage 1
 
-        ##stage 1.1: Turning tp angle at distance to docking
+        ##stage 1.1: Turning to angle at distance to docking
 
         goal_xpose, goal_ypose, goal_thetha = pose_update_staging(stage_1_dist)
         angle_diff = atan2(goal_ypose - current_ypose, goal_xpose - current_xpose) - current_theta
@@ -296,14 +296,14 @@ if __name__ == '__main__':
 
 
            
-            stage_angular_speed = pid_staging_3_angular(angle_diff)
+            stage_angular_speed = pid_staging_alignment(angle_diff)
             speed.linear.x = 0.0
             speed.angular.z = -stage_angular_speed
             pub.publish(speed)
         speed.linear.x = 0
         speed.angular.z = 0
         pub.publish(speed)
-        time.sleep(0.5)
+        time.sleep(0.2)
 
         print('pointing towards goal pose - Stage 1')
         #print('goal thetha', goal_thetha)
@@ -326,16 +326,18 @@ if __name__ == '__main__':
             
 
 
-            stage_linear_speed = abs(pid_staging_1_linear(sqrt(pow((goal_xpose - current_xpose), 2) + pow((goal_ypose - current_ypose), 2))))
-            stage_angular_speed = -pid_staging_1_angular(angle_diff)
+            stage_linear_speed = abs(pid_staging_linear(sqrt(pow((goal_xpose - current_xpose), 2) + pow((goal_ypose - current_ypose), 2))))
+            stage_angular_speed = -pid_staging_angular(angle_diff)
             speed.linear.x = stage_linear_speed
             speed.angular.z = stage_angular_speed
             pub.publish(speed)
+
+    
         print('reached goal pose - Stage 1')
         speed.linear.x = 0
         speed.angular.z = 0
         pub.publish(speed)
-        time.sleep(0.1)
+        
 
 
         #stage 2
@@ -348,7 +350,7 @@ if __name__ == '__main__':
 
         #goal_xpose, goal_ypose, goal_thetha = pose_update_staging(stage_1_dist) ##
         angle_diff = goal_thetha - current_theta
-        print('Turning bot until to goal orientation until tag detected')
+        print('Turning bot until to goal orientation until left/right tag detected')
 
         ##The following while loop turn the bot to goal orientation until april tag is detected as which point it moves to the bot in a manner to orientation it towards the next docking station distance goal
         while angle_diff > 0 or angle_diff < 0:
@@ -362,9 +364,9 @@ if __name__ == '__main__':
             
          
 
-            print('angle_diff', angle_diff)
+            #print('angle_diff', angle_diff)
             angle_diff = goal_thetha - current_theta
-            stage_angular_speed = pid_staging_3_angular(angle_diff)
+            stage_angular_speed = pid_staging_tag_detect(angle_diff)
             speed.linear.x = 0.0
             speed.angular.z = -stage_angular_speed
             
@@ -386,7 +388,7 @@ if __name__ == '__main__':
                 speed.linear.x = 0
                 speed.angular.z = 0
                 pub.publish(speed)
-                time.sleep(2)
+                time.sleep(1)
 
                 print("tag detected , turning towards Stage-2 offset")
                 
@@ -407,7 +409,7 @@ if __name__ == '__main__':
 
 
                 
-                    stage_angular_speed = pid_staging_2_angular(angle_diff)
+                    stage_angular_speed = pid_staging_alignment(angle_diff)
                     speed.linear.x = 0.0
                     speed.angular.z = -stage_angular_speed
                     pub.publish(speed)
@@ -422,7 +424,7 @@ if __name__ == '__main__':
         speed.linear.x = 0
         speed.angular.z = 0
         pub.publish(speed)
-        time.sleep(0.2)
+        time.sleep(0.1)
 
     
 
@@ -442,11 +444,12 @@ if __name__ == '__main__':
             
 
 
-            stage_linear_speed = abs(pid_staging_1_linear(sqrt(pow((goal_xpose - current_xpose), 2) + pow((goal_ypose - current_ypose), 2))))
-            stage_angular_speed = -pid_staging_1_angular(angle_diff)
+            stage_linear_speed = abs(pid_staging_linear(sqrt(pow((goal_xpose - current_xpose), 2) + pow((goal_ypose - current_ypose), 2))))
+            stage_angular_speed = -pid_staging_angular(angle_diff)
             speed.linear.x = stage_linear_speed
             speed.angular.z = stage_angular_speed
             pub.publish(speed)
+
         print('At goal pose - Stage 2')
         speed.linear.x = 0
         speed.angular.z = 0
@@ -471,7 +474,7 @@ if __name__ == '__main__':
             #print('currrent_thetha', current_theta)
             #print('angle diff', angle_diff)
             angle_diff = goal_thetha - current_theta
-            stage_angular_speed = pid_staging_3_angular(angle_diff)
+            stage_angular_speed = pid_staging_tag_detect(angle_diff)
             speed.linear.x = 0.0
             speed.angular.z = -stage_angular_speed
             #print("x_pose",x_pose)
@@ -489,7 +492,7 @@ if __name__ == '__main__':
                 speed.linear.x = 0
                 speed.angular.z = 0
                 pub.publish(speed)
-                time.sleep(2)
+                time.sleep(0.5)
                 print("tag detected , turning towards Stage-3 offset")
                 
                 goal_xpose, goal_ypose, goal_thetha = pose_update_staging(stage_3_dist)
@@ -508,7 +511,7 @@ if __name__ == '__main__':
 
 
                 
-                    stage_angular_speed = pid_staging_2_angular(angle_diff)
+                    stage_angular_speed = pid_staging_alignment(angle_diff)
                     speed.linear.x = 0.0
                     speed.angular.z = -stage_angular_speed
                     pub.publish(speed)
@@ -523,7 +526,7 @@ if __name__ == '__main__':
         speed.linear.x = 0
         speed.angular.z = 0
         pub.publish(speed)
-        time.sleep(0.5)
+        time.sleep(0.1)
 
     
 
@@ -542,16 +545,18 @@ if __name__ == '__main__':
             
 
 
-            stage_linear_speed = abs(pid_staging_1_linear(sqrt(pow((goal_xpose - current_xpose), 2) + pow((goal_ypose - current_ypose), 2))))
-            stage_angular_speed = -pid_staging_1_angular(angle_diff)
+            stage_linear_speed = abs(pid_staging_linear(sqrt(pow((goal_xpose - current_xpose), 2) + pow((goal_ypose - current_ypose), 2))))
+            stage_angular_speed = -pid_staging_angular(angle_diff)
             speed.linear.x = stage_linear_speed
             speed.angular.z = stage_angular_speed
             pub.publish(speed)
+
+
         print('At goal pose - Stage 3')
         speed.linear.x = 0
         speed.angular.z = 0
         pub.publish(speed)
-        time.sleep(0.01)
+    
 
 ##stage 2.1: Turning tp angle at distance to docking
         current_time = rospy.get_time()
@@ -569,7 +574,7 @@ if __name__ == '__main__':
             #print('currrent_thetha', current_theta)
             #print('angle diff', angle_diff)
             angle_diff = goal_thetha - current_theta
-            stage_angular_speed = pid_staging_3_angular(angle_diff)
+            stage_angular_speed = pid_staging_tag_detect(angle_diff)
             speed.linear.x = 0.0
             speed.angular.z = -stage_angular_speed
             pub.publish(speed)
@@ -587,7 +592,7 @@ if __name__ == '__main__':
                 speed.linear.x = 0
                 speed.angular.z = 0
                 pub.publish(speed)
-                time.sleep(1.5)
+                time.sleep(0.5)
                 print("tag detected , turning towards Stage-3 offset")
                 
                 x_pose, y_pose, z_pose = pose_update_alignment()
@@ -597,7 +602,7 @@ if __name__ == '__main__':
 
                     x_pose, y_pose, z_pose = pose_update_alignment()
                     angle_diff = math.atan(y_pose/x_pose)
-                    stage_angular_speed = -pid_staging_2_angular(angle_diff)
+                    stage_angular_speed = -pid_staging_alignment(angle_diff)
                     speed.linear.x = 0.0
                     speed.angular.z = stage_angular_speed
                     #print("x_pose",x_pose)
@@ -619,13 +624,18 @@ if __name__ == '__main__':
       
         time.sleep(0.1)
         x_pose, y_pose, z_pose = pose_update_alignment()
+        print(z_pose)
 
-        while z_pose > 0.08:
+
+        
+        while z_pose > 0.098:
+
             print(z_pose)
+            
             x_pose, y_pose, z_pose = pose_update_alignment()
             angle_diff = math.atan(y_pose/x_pose)
-            stage_linear_speed = -pid_staging_2_linear(z_pose)
-            stage_angular_speed = -pid_staging_2_angular(angle_diff)
+            stage_linear_speed = 0.02
+            stage_angular_speed = -pid_staging_angular(angle_diff)
             speed.linear.x = stage_linear_speed
             speed.angular.z = stage_angular_speed
             pub.publish(speed)
