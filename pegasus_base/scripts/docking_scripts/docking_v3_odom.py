@@ -17,7 +17,7 @@ from simple_pid import PID
 pid_staging_alignment = PID(0.6, 0, 0, setpoint=0) #PID that controls staging angular velocity 
 pid_staging_alignment.output_limits = (-0.2, 0.2)
 
-pid_staging_tag_detect = PID(0.6, 0, 0, setpoint=0) #PID that controls staging angular velocity 
+pid_staging_tag_detect = PID(0.8, 0, 0, setpoint=0) #PID that controls staging angular velocity 
 pid_staging_tag_detect.output_limits = (-0.3, 0.3)
 
 pid_staging_angular = PID(0.3, 0, 0, setpoint=0) #PID that controls staging angular velocity 
@@ -432,7 +432,7 @@ if __name__ == '__main__':
         print('moving towards goal pose - Stage 2')
 
 
-        while sqrt(pow((goal_xpose - current_xpose), 2) + pow((goal_ypose - current_ypose), 2)) > 0.02:
+        while sqrt(pow((goal_xpose - current_xpose), 2) + pow((goal_ypose - current_ypose), 2)) > 0.03:
 
             
 
@@ -492,7 +492,7 @@ if __name__ == '__main__':
                 speed.linear.x = 0
                 speed.angular.z = 0
                 pub.publish(speed)
-                time.sleep(0.5)
+                time.sleep(1)
                 print("tag detected , turning towards Stage-3 offset")
                 
                 goal_xpose, goal_ypose, goal_thetha = pose_update_staging(stage_3_dist)
@@ -592,7 +592,7 @@ if __name__ == '__main__':
                 speed.linear.x = 0
                 speed.angular.z = 0
                 pub.publish(speed)
-                time.sleep(0.5)
+                time.sleep(1)
                 print("tag detected , turning towards Stage-3 offset")
                 
                 x_pose, y_pose, z_pose = pose_update_alignment()
@@ -628,9 +628,9 @@ if __name__ == '__main__':
 
 
         
-        while z_pose > 0.098:
+        while z_pose > 0.096:
 
-            print(z_pose)
+            #print(z_pose)
             
             x_pose, y_pose, z_pose = pose_update_alignment()
             angle_diff = math.atan(y_pose/x_pose)
@@ -645,6 +645,7 @@ if __name__ == '__main__':
         speed.linear.x = 0
         speed.angular.z = 0
         pub.publish(speed)
+        print("Docking Complete")
 
 
       

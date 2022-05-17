@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import rospy
 import sys
 import serial
@@ -5,14 +6,15 @@ from std_msgs.msg import Int32
 
 def callback(data):
     cmd = data.data
-    print(cmd)
+
     if cmd != None:
         ser.write(bytes(cmd))
-        print(cmd)
+        print("TYPE", type(cmd))
+        print(bytes(cmd))
 
     
 
-rospy.init_node("imu_node")
+rospy.init_node("led_node")
 port = rospy.get_param('~port', '/dev/ttyUSB0')
 rospy.Subscriber("led_cmd", Int32, callback)
 rate = rospy.Rate(10)

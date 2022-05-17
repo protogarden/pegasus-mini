@@ -23,7 +23,7 @@
 
 
     <node pkg="pegasus_base" type="pegasus_base.py" name="pegasus_base_node" output="screen"></node>
-    <node pkg="pegasus_base" type="led_node.py" name="led_node" output="screen"></node>   
+    <!--<node pkg="pegasus_base" type="led_node.py" name="led_node" output="screen"></node>-->
     <node pkg="pegasus_base" type="rc_node.py" name="roboclaw_node" output="screen"></node>    
     <!--<node pkg="rosboard" type="rosboard_node" name="rosboard_node"></node>-->
 

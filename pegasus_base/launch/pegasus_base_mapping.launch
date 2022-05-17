@@ -23,7 +23,7 @@
     <!--<include file="$(find pegasus_base)/launch/razor-pub.launch"/> -->
     <node pkg="pegasus_base" type="pegasus_base.py" name="pegasus_base_node" output="screen"></node>    
     <node pkg="pegasus_base" type="rc_node.py" name="roboclaw_node" output="screen"></node>    
-    <!--<node pkg="rosboard" type="rosboard_node" name="rosboard_node"></node> -->
+    <!--<node pkg="rosboard" type="rosboard_node" name="rosboard_node"></node>-->
 
     <node pkg="teleop_twist_joy" type="teleop_node" name="teleop_twistjoy">
         <param name="scale_linear" value="0.4" />
