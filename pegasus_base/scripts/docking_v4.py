@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import rospy 
 import tf
 import tf2_ros
@@ -88,7 +89,7 @@ class DockingInterface():
         self.speed.linear.x = stage_linear_speed
         self.speed.angular.z = stage_angular_speed
         self.pub.publish(self.speed)
-        time.sleep(4)
+        time.sleep(8)
 
         stage_linear_speed = 0
         stage_angular_speed = 0
@@ -566,7 +567,7 @@ class DockingInterface():
         rospy.init_node('docking_node')
 
         self.dock_feedback_pub = rospy.Publisher('/docking_result', Int32, queue_size=1)
-        rospy.Subscriber('/docking_cmd',  Int32 , self.docking_callback)
+        rospy.Subscriber('/docking_cmd',  Int32 , self.docking_callback, queue_size=1)
         self.pub =rospy.Publisher("/cmd_vel",Twist,  queue_size=1)
         rospy.Subscriber('odom',Odometry,self.odometryCb)
         self.t = tf.TransformListener()
@@ -585,7 +586,7 @@ class DockingInterface():
         self.tf_buffer = tf2_ros.Buffer(rospy.Duration(1))  # tf buffer length
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
         while not rospy.is_shutdown():
-
+           
             if self.docking_cmd == 1:
                 self.dock()
 

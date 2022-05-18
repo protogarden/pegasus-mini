@@ -16,51 +16,55 @@ class StocktakeInterface():
     def __init__(self):
         self.status = 0
         self.initial_position = [0,0,0]
+        self.undock_position = [0,-1.18, 3.14159]
+
         self.pos_1 = [2,-1,0]
         self.pos_2 = [1,-1,3.14159]
         self.dock_pos = [0,0,0]
-        self.docking_interface = 0 #1 - Dock #2 - Undock #3- Docking, #4 -Undocking,#5 - Docked, #6 - Undocked
+        self.no_action_cmd = 0
         self.dock_cmd = 1
         self.undock_cmd = 2
+        self.docking_result = 0 #1- Docking, #2 -Undocking,#3 - Docked, #4 - Undocked
       
         
 
-    def un_dock(self):
-        self.docking_interface = self.undock_cmd
-        self.dock_cmd_pub.publish(self.docking_interface) #publish cmd 
-        while self.docking_interface != 4: #wait for result 
-            rate.sleep()
-        while self.docking_interface != 6: #wait for result 
-            rate.sleep()
+    def undock(self):
+        print("Send udocking cmd")
+        
+        self.dock_cmd_pub.publish(self.undock_cmd) #publish cmd 
+        while self.docking_result != 2: #wait for result 
+            self.rate.sleep()
+            self.dock_cmd_pub.publish(self.undock_cmd) #publish cmd 
+
+        self.dock_cmd_pub.publish(self.no_action_cmd)
+        print("received feedback of undocking")
+       
+        while self.docking_result != 4: #wait for result 
+            self.rate.sleep()
+        print("received feedback of undocked")
+
+        
 
     def dock(self):
-        self.docking_interface = self.dock_cmd
-        self.dock_cmd_pub.publish(self.docking_interface) #publish cmd 
-        while self.docking_interface != 3: #wait for result 
-            rate.sleep()
-        while self.docking_interface != 5: #wait for result 
-            rate.sleep()
+        print("Send docking cmd")
+        
+        self.dock_cmd_pub.publish(self.dock_cmd) #publish cmd 
+        while self.docking_result != 1: #wait for result 
+            
+            self.rate.sleep()
+            self.dock_cmd_pub.publish(self.dock_cmd) #publish cmd
+        self.dock_cmd_pub.publish(self.no_action_cmd)
+        print("received feedback of docking")
+        while self.docking_result != 3: #wait for result 
+            self.rate.sleep()
+
+        print("received feedback of docked")
+        
         
         
     def docking_callback(self, data):
-        self.docking_interface = data.data
+        self.docking_result = data.data
 
-
-    def status_callback(self, data):
-        #rospy.Subscriber("/move_base/result", MoveBaseActionResult, self.status_callback, queue_size=1)
-
-        if len(data.status_list) == 0:
-            return
-
-        else:
-            print("status:", data.status_list[0].status)
-            #1-Moving to Goal, 3- Goal Reached
-           
-            self.status = data.status_list[0].status
-        
-            print("status_text:", data.status_list[0].text)
- 
-        
 
     def goal_pose(self, goal_x, goal_y, goal_thetha):
 
@@ -95,22 +99,26 @@ class StocktakeInterface():
 
     def run(self):
         rospy.init_node('stocktake_cmd_node', anonymous=True)
-        #self.goal_pose_pub = rospy.Publisher('/move_base/goal', MoveBaseActionGoal, queue_size=5)
+        
         self.pose_estimate_pub = rospy.Publisher('/initialpose', PoseWithCovarianceStamped, queue_size=5)
 
 
-        self.dock_cmd_pub = rospy.Publisher('/docking_interface', Int32, queue_size=1)
-        rospy.Subscriber('/docking_interface',  Int32 , self.status_callback)
+        self.dock_cmd_pub = rospy.Publisher('/docking_cmd', Int32, queue_size=1)
+        rospy.Subscriber('/docking_result',  Int32 , self.docking_callback)
     
         
-        rate = rospy.Rate(20)
+        self.rate = rospy.Rate(20)
         self.client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         self.client.wait_for_server()
         self.estimate_pose(self.initial_position[0], self.initial_position[1], self.initial_position[2]) #Send initial Pose
+        
         while not rospy.is_shutdown():
+
+
+            
             
             #time.sleep(1)
-            
+        
             self.goal_pose(self.pos_1[0], self.pos_1[1], self.pos_1[2])
             time.sleep(1)
             goal_state = self.client.get_state()
@@ -128,14 +136,29 @@ class StocktakeInterface():
             goal_state = self.client.get_state()
             result = self.client.get_result()
             print("result",goal_state )
+            time.sleep(2)
 
-            break
+            self.dock()
+      
+            time.sleep(1)
+            self.undock()
+            self.estimate_pose(self.undock_position[0], self.undock_position[1], self.undock_position[2])
+            time.sleep(1)
+           
+
+
+            self.rate.sleep()
+      
+
+            
 
             
 
 if __name__ == '__main__':
     
     st_interface = StocktakeInterface()
+
+    
 
     try:
         
