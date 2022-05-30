@@ -19,7 +19,7 @@ class DockingInterface():
     def __init__(self):
         self.pid_staging_alignment = PID(0.6, 0, 0, setpoint=0) #PID that controls staging angular velocity 
         self.pid_staging_alignment.output_limits = (-0.2, 0.2)
-        self.pid_staging_tag_detect = PID(0.8, 0, 0, setpoint=0) #PID that controls staging angular velocity 
+        self.pid_staging_tag_detect = PID(0.3, 0, 0, setpoint=0) #PID that controls staging angular velocity 
         self.pid_staging_tag_detect.output_limits = (-0.3, 0.3)
         self.pid_staging_angular = PID(0.3, 0, 0, setpoint=0) #PID that controls staging angular velocity 
         self.pid_staging_angular.output_limits = (-0.1, 0.1)
@@ -84,12 +84,12 @@ class DockingInterface():
         
         self.dock_feedback_pub.publish(self.undocking_feedback)
 
-        stage_linear_speed = -0.02
+        stage_linear_speed = -0.04
         stage_angular_speed = 0
         self.speed.linear.x = stage_linear_speed
         self.speed.angular.z = stage_angular_speed
         self.pub.publish(self.speed)
-        time.sleep(8)
+        time.sleep(10)
 
         stage_linear_speed = 0
         stage_angular_speed = 0
@@ -169,12 +169,13 @@ class DockingInterface():
         #goal_xpose, goal_ypose, goal_thetha = pose_update_staging(stage_1_dist) ##
         angle_diff = goal_thetha - self.current_theta
         print('Turning bot until to goal orientation until left/right tag detected')
+       
 
         ##The following while loop turn the bot to goal orientation until april tag is detected as which point it moves to the bot in a manner to orientation it towards the next docking station distance goal
         self.pid_staging_tag_detect.auto_mode = True
-        while angle_diff > 0 or angle_diff < 0:
-            angle_diff = goal_thetha - self.current_theta
-            stage_angular_speed = self.pid_staging_tag_detect(angle_diff)
+        stage_angular_speed = self.pid_staging_tag_detect(angle_diff)
+        while True:
+    
             self.speed.linear.x = 0.0
             self.speed.angular.z = -stage_angular_speed
             
@@ -253,14 +254,16 @@ class DockingInterface():
 
         ##The following while loop turn the bot to goal orientation until april tag is detected as which point it moves to the bot in a manner to orientation it towards the next docking station distance goal
         self.pid_staging_tag_detect.auto_mode = True
-        while angle_diff > 0 or angle_diff < 0:
-            angle_diff = goal_thetha - self.current_theta
-            stage_angular_speed = self.pid_staging_tag_detect(angle_diff)
+        stage_angular_speed = self.pid_staging_tag_detect(angle_diff)
+        
+        while True:
+            
+            
             self.speed.linear.x = 0.0
             self.speed.angular.z = -stage_angular_speed
             #print("x_pose",x_pose)
             #print("angle_diff",angle_diff)
-            self.pub.publish(self.speed)
+            
 
             self.left_tag_detect()
             self.right_tag_detect()
@@ -332,19 +335,21 @@ class DockingInterface():
         print('dt',self.dt)
         angle_diff = goal_thetha - self.current_theta
         print('Turning bot until to goal orientation until tag detected')
+        
         self.pid_staging_tag_detect.auto_mode = True
+        stage_angular_speed = self.pid_staging_tag_detect(angle_diff)
         ##The following while loop turn the bot to goal orientation until april tag is detected as which point it moves to the bot in a manner to orientation it towards the next docking station distance goal
-        while angle_diff > 0 or angle_diff < 0:
+        while True:
 
-            angle_diff = goal_thetha - self.current_theta
-            stage_angular_speed = self.pid_staging_tag_detect(angle_diff)
+            
+            
             self.speed.linear.x = 0.0
             self.speed.angular.z = -stage_angular_speed
            
             x_pose_align, y_pose_align, z_pose = self.pose_update_alignment()
             
 
-            if self.t > 0:
+            if self.dt > 0:
                 self.pid_staging_tag_detect.auto_mode = False
                 print('dt',self.dt)
 
@@ -376,7 +381,7 @@ class DockingInterface():
                 break
 
 
-            self.pub.publish(speed)
+            self.pub.publish(self.speed)
 
         self.speed.linear.x = 0
         self.speed.angular.z = 0
@@ -389,7 +394,7 @@ class DockingInterface():
 
         self.pid_staging_angular.auto_mode = True
         self.pid_staging_linear.auto_mode = True
-        while z_pose > 0.096:
+        while z_pose > 0.1:
 
             #print(z_pose)
             

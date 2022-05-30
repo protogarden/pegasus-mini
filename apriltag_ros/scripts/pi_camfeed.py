@@ -22,7 +22,7 @@ def gstreamer_pipeline(
     capture_height=720,
     display_width=640,
     display_height=360,
-    framerate=10,
+    framerate=5,
     flip_method=0,
 ):
     return (
@@ -68,8 +68,8 @@ cam_standard_info.P = [693.0473022460938, 0.0, 330.2610844036044, 0.0, 0.0, 696.
 
 def pub_camera():
     video_capture = cv2.VideoCapture(gstreamer_pipeline(flip_method=0), cv2.CAP_GSTREAMER)
-    img_pub = rospy.Publisher('/camera_pub/image_rect', Image, queue_size = 10)
-    cam_pub = rospy.Publisher('/camera_pub/camera_info', CameraInfo, queue_size = 1)
+    img_pub = rospy.Publisher('/camera_pub/image_rect', Image, queue_size = 1)
+    cam_pub = rospy.Publisher('/camera_pub/camera_info', CameraInfo, queue_size = 10)
     rospy.init_node('camera_pub')
     bridge = CvBridge()
     
@@ -97,13 +97,14 @@ def pub_camera():
             img_msg.header.frame_id = 'camera'
             
             
-            img_pub.publish(img_msg)
+            
 
             cam_standard_info.header.stamp = stamp
             
 
             #publish the camera info messages first
             cam_pub.publish(cam_standard_info)
+            img_pub.publish(img_msg)
             
             rate.sleep()
 
