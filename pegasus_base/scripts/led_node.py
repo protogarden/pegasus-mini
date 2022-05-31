@@ -9,10 +9,7 @@ def callback(data):
 
     if cmd != None:
         ser.write(bytes(cmd))
-        print("TYPE", type(cmd))
-        print(bytes(cmd))
 
-    
 
 rospy.init_node("led_node")
 port = rospy.get_param('~port', '/dev/ttyUSB0')

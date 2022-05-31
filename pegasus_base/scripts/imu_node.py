@@ -9,26 +9,17 @@ import tf
 import tf2_ros
 import geometry_msgs.msg
 import time
-
-#from time import time
 from sensor_msgs.msg import Imu
 from tf.transformations import quaternion_from_euler
 from dynamic_reconfigure.server import Server
-from razor_imu_9dof.cfg import imuConfig
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
+from nav_msgs.msg import Odometry
 
 degrees2rad = math.pi/180.0
 imu_yaw_calibration = 0.0
 debug = 0
 
-# Callback for dynamic reconfigure requests
-def reconfig_callback(config, level):
-    global imu_yaw_calibration
-    rospy.loginfo("""Reconfigure request for yaw_calibration: %d""" %(config['yaw_calibration']))
-    #if imu_yaw_calibration != config('yaw_calibration'):
-    imu_yaw_calibration = config['yaw_calibration']
-    rospy.loginfo("Set imu_yaw_calibration to %d" % (imu_yaw_calibration))
-    return config
+
 
 rospy.init_node("imu_node")
 
@@ -44,11 +35,7 @@ imuMsg = Imu()
 # static roll/pitch error of 0.8%, owing to gravity orientation sensing
 # error => 2.8 degrees, or 0.05 radians. i.e. variance in roll/pitch: 0.0025
 # so set all covariances the same.
-imuMsg.orientation_covariance = [
-0.0025 , 0 , 0,
-0, 0.0025, 0,
-0, 0, 0.0025
-]
+
 
 # Angular velocity covariance estimation:
 # Observed gyro noise: 4 counts => 0.28 degrees/sec
@@ -65,22 +52,28 @@ imuMsg.angular_velocity_covariance = [
 # nonliniarity spec: 0.5% of full scale => 0.2m/s^2
 # Choosing 0.2 as std dev, variance = 0.2^2 = 0.04
 imuMsg.linear_acceleration_covariance = [
-0.04 , 0 , 0,
-0 , 0.04, 0,
-0 , 0 , 0.04
+0.02 , 0 , 0,
+0 , 0.02, 0,
+0 , 0 , 0.02
 ]
 
 # read basic information
-port = rospy.get_param('~port', '/dev/ttyUSB0')
+port = rospy.get_param('~port', '/dev/ttyUSB1')
+gx_offset = rospy.get_param('~gx_offset', 0.0)
+gy_offset = rospy.get_param('~gy_offset', 0.0)
+gz_offset = rospy.get_param('~gz_offset', 0.0)
 topic = rospy.get_param('~topic', 'imu')
+vth_thresh = rospy.get_param('~vth_thresh', 0.02)
 frame_id = rospy.get_param('~frame_id', 'base_link')
-imu_yaw_calibration = rospy.get_param('~imu_yaw_calibration', 0.0)
+
 
 pub = rospy.Publisher(topic, Imu, queue_size=1)
 br = tf.TransformBroadcaster()
+last_time = rospy.Time.now()
 
 # Check your COM port and baud rate
 rospy.loginfo("Opening %s...", port)
+rate = rospy.Rate(100)
 try:
     ser = serial.Serial(port=port, baudrate=115200, timeout=1)
     #ser = serial.Serial(port=port, baudrate=57600, timeout=1, rtscts=True, dsrdtr=True) # For compatibility with some virtual serial ports (e.g. created by socat) in Python 2.7
@@ -93,12 +86,11 @@ roll=0
 pitch=0
 yaw=0
 seq=0
-rospy.loginfo("Giving IMU time to boot and converge")
-rospy.sleep(10) # Sleep for 5 seconds to wait for the board to boot
 
 rospy.loginfo("Flushing first 200 IMU entries...")
 for x in range(0, 200):
     line = bytearray(ser.readline()).decode("utf-8")
+    #print(line)
    
 rospy.loginfo("Publishing IMU data...")
 #f = open("raw_imu_data.log", 'w')
@@ -108,6 +100,9 @@ while not rospy.is_shutdown():
     if (errcount > 10):
         break
     line = bytearray(ser.readline()).decode("utf-8")
+
+
+    ser.flush()
     if ((line.find("YPRAxAyAzGxGyGz=") == "") or (line.find("\r\n") == "")): 
         rospy.logwarn("Bad IMU data or bad sync")
         errcount = errcount+1
@@ -135,7 +130,7 @@ while not rospy.is_shutdown():
 
         pitch_deg = float(words[1])
         roll_deg = float(words[2])
-        print(yaw_deg)
+        #print(yaw_deg)
   
         yaw = yaw_deg*degrees2rad
         pitch = pitch_deg*degrees2rad
@@ -158,7 +153,30 @@ while not rospy.is_shutdown():
     imuMsg.header.frame_id = frame_id
     imuMsg.header.seq = seq
     seq = seq + 1
+    current_time = rospy.Time.now()
+    d_time = (current_time - last_time).to_sec()
+    last_time = current_time
+    if d_time > 0.015 or (imuMsg.angular_velocity.z < vth_thresh and imuMsg.angular_velocity.z > -vth_thresh):
+        
+        
+        imuMsg.orientation_covariance = [
+            1000 , 0 , 0,
+            0, 1000, 0,
+            0, 0, 1000
+            ]
+
+
+    else: 
+   
+        imuMsg.orientation_covariance = [
+            0.002 , 0 , 0,
+            0, 0.002, 0,
+            0, 0, 0.002
+            ]
+
+
     pub.publish(imuMsg)
+    rate.sleep()
     if debug == 1:
         br = tf2_ros.TransformBroadcaster()
         t = geometry_msgs.msg.TransformStamped()
@@ -176,12 +194,5 @@ while not rospy.is_shutdown():
 
         br.sendTransform(t)
    
-
-    
-
-
-
-
-        
 ser.close
 #f.close

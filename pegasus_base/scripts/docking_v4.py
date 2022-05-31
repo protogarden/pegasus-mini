@@ -11,73 +11,75 @@ from tf.transformations import euler_from_quaternion
 from math import atan2, pow, sqrt
 import math
 import time
-from simple_pid import PID
 from std_msgs.msg import Int32
 
 
 class DockingInterface():
     def __init__(self):
-        self.pid_staging_alignment = PID(0.6, 0, 0, setpoint=0) #PID that controls staging angular velocity 
-        self.pid_staging_alignment.output_limits = (-0.2, 0.2)
-        self.pid_staging_tag_detect = PID(0.3, 0, 0, setpoint=0) #PID that controls staging angular velocity 
-        self.pid_staging_tag_detect.output_limits = (-0.3, 0.3)
-        self.pid_staging_angular = PID(0.3, 0, 0, setpoint=0) #PID that controls staging angular velocity 
-        self.pid_staging_angular.output_limits = (-0.1, 0.1)
-        self.pid_staging_linear = PID(0.5, 0, 0, setpoint=0) #PID that controls staging angular velocity 
-        self.pid_staging_linear.output_limits = (-0.08, 0.08)
-        self.pid_staging_alignment.auto_mode = False
-        self.pid_staging_tag_detect.auto_mode = False
-        self.pid_staging_angular.auto_mode = False
-        self.pid_staging_linear.auto_mode = False
+        self.pid_staging_alignment_gain = rospy.get_param('~pid_staging_alignment_gain', 0.6) 
+        self.pid_staging_alignment_output_limit = rospy.get_param('~pid_staging_alignment_output_limit', 0.2) 
+
+        self.pid_staging_tag_detect_gain = rospy.get_param('~pid_staging_tag_detect_gain', 0.3) 
+        self.pid_staging_tag_detect_output_limits = rospy.get_param('~pid_staging_tag_detect_output_limits', 0.2) 
+
+        self.pid_staging_angular_gain = rospy.get_param('~pid_staging_angular_gain', 0.3) 
+        self.pid_staging_angular_output_limits = rospy.get_param('~pid_staging_angular_output_limits', 0.1)
+
+        self.pid_staging_linear_gain = rospy.get_param('~pid_staging_linear_gain', 0.5)
+        self.pid_staging_linear_output_limits = rospy.get_param('~pid_staging_linear_output_limits', 0.08)
+
+        self.pid_final_alignment_gain = rospy.get_param('~pid_final_alignment_gain', 0.5)
+        self.pid_final_alignment_output_limit = rospy.get_param('~pid_final_alignment_output_limit', 0.05)
+
+        self.docking_bundle_name = rospy.get_param('~docking_bundle_name', 'DOCKING_TAGS') 
+        self.left_bundle_tag = rospy.get_param('~left_bundle_tag', 'LEFT-TAG') 
+        self.right_bundle_tag = rospy.get_param('~right_bundle_tag', 'RIGHT-TAG') 
+        self.alignment_docking_tag_name = rospy.get_param('~alignment_tag', 'TAG') 
+        self.odom_frame = rospy.get_param('~odom_frame', 'odom')
+        self.base_link_frame = rospy.get_param('~base_link_frame', 'base_link') 
         
+        self.stage_1_dist = rospy.get_param('~stage_1_dist', 0.8)
+        self.stage_2_dist = rospy.get_param('~stage_2_dist', 0.6)
+        self.stage_3_dist = rospy.get_param('~stage_3_dist', 0.5)
+        self.engage_dist = rospy.get_param('~engage_dist', 0.095)
 
-        self.docking_tag_name = 'DOCKING_TAGS' #bases_link currently for testing
-        self.left_tag = 'LEFT-TAG'
-        self.right_tag = 'RIGHT-TAG'
-        self.alignment_docking_tag_name = 'TAG'
-        self.odom_frame = 'odom'
-        self.base_link_frame = 'base_link'
-        self.camera_link = 'base_link'
+        self.stage_1_radius_tolerance = rospy.get_param('~stage_1_radius_tolerance', 0.03)
+        self.stage_2_radius_tolerance = rospy.get_param('~stage_2_radius_tolerance', 0.03)
+        self.stage_3_radius_tolerance = rospy.get_param('~stage_3_radius_tolerance', 0.025)
 
-        self.stage_1_dist = 0.8
-        self.stage_2_dist = 0.6
-        self.stage_3_dist = 0.5
-
-        self.final_dist = 0.07
-        self.angle_thresh = 1 #initial staging thresh
-
-        self.angle_thresh_2 = 0.01 #second staging thresh
-        self.angle_thresh_3 = 0.01
-        self.angle_thresh_4 = 0.01
-        self.angle_thresh_2_align = 0.05
-        self.angle_thresh_3_align = 0.008
+        self.stage_align_thresh = rospy.get_param('~stage_alignment_tolerance', 0.008)
+        self.final_align_thresh = rospy.get_param('~final_alignment_tolerance', 0.008)
 
         self.current_xpose = 0
         self.current_ypose = 0
         self.current_theta = 0
-        '''
-        self.goal_xpose = 0
-        self.goal_ypose = 0
-        self.goal_thetha = 0
-        '''
 
         self.dt = 0
         self.dt_left = 0
         self.dt_right = 0
 
-        self.stage_1_radius_tolerance = 0.03
-        self.stage_2_radius_tolerance = 0.03
-        self.stage_3_radius_tolerance = 0.025
-
         self.docking_cmd = 0
-
         self.docking_feedback = 1
         self.dock_feedback = 3
-
         self.undocking_feedback = 2
         self.undock_feedback = 4
+
+        self.driving_led = 1
+        self.charging_led = 2
+        self.docking_led = 3
+        self.finnish_charging = 4
+        self.startup_led = 5
+        self.off_led = 6
       
         
+    def pid(self, gain, input, output_limit):
+
+        output = gain*input
+        if output > output_limit:
+            output = output_limit 
+        elif output < -output_limit:
+            output = - output_limit
+        return output
 
     def undock(self):
 
@@ -96,21 +98,13 @@ class DockingInterface():
         self.speed.linear.x = stage_linear_speed
         self.speed.angular.z = stage_angular_speed
         self.pub.publish(self.speed)
-
         
         self.dock_feedback_pub.publish(self.undock_feedback)
 
 
- 
-
     def dock(self):
 
-
-
-        
         self.dock_feedback_pub.publish(self.docking_feedback)
-        
-
         self.speed.linear.x = 0
         self.speed.angular.z = 0
         self.pub.publish(self.speed)
@@ -120,16 +114,14 @@ class DockingInterface():
         
         goal_xpose, goal_ypose, goal_thetha = self.pose_update_staging(self.stage_1_dist)
         angle_diff = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose) - self.current_theta
-        self.pid_staging_alignment.auto_mode = True #Turn PID ON
         print('Turning towards goal pose - Stage 1')
-        while angle_diff > self.angle_thresh_2 or angle_diff < -self.angle_thresh_2:
+        while angle_diff > self.stage_align_thresh or angle_diff < -self.stage_align_thresh:
             #goal_xpose, goal_ypose, goal_thetha = pose_update_staging(stage_1_dist)
             angle_diff = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose) - self.current_theta
-            stage_angular_speed = self.pid_staging_alignment(angle_diff)
+            stage_angular_speed = self.pid(self.pid_staging_alignment_gain, angle_diff, self.pid_staging_alignment_output_limit)
             self.speed.linear.x = 0.0
-            self.speed.angular.z = -stage_angular_speed
+            self.speed.angular.z = stage_angular_speed
             self.pub.publish(self.speed)
-        self.pid_staging_alignment.auto_mode = False #Turn PID OFF
         self.speed.linear.x = 0
         self.speed.angular.z = 0
         self.pub.publish(self.speed)
@@ -139,53 +131,49 @@ class DockingInterface():
         ##stage 1.2: Going to point from docking 
 
         print('moving towards goal pose - Stage 1')
-        self.pid_staging_angular.auto_mode = True
-        self.pid_staging_linear.auto_mode = True
         while sqrt(pow((goal_xpose - self.current_xpose), 2) + pow((goal_ypose - self.current_ypose), 2)) > self.stage_1_radius_tolerance:
             angle_diff = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose) - self.current_theta
-            stage_linear_speed = abs(self.pid_staging_linear(sqrt(pow((goal_xpose - self.current_xpose), 2) + pow((goal_ypose - self.current_ypose), 2))))
-            stage_angular_speed = -self.pid_staging_angular(angle_diff)
+            euclidean_distance = sqrt(pow((goal_xpose - self.current_xpose), 2) + pow((goal_ypose - self.current_ypose), 2))
+            stage_linear_speed = abs(self.pid(self.pid_staging_linear_gain, euclidean_distance, self.pid_staging_linear_output_limits))
+            stage_angular_speed = self.pid(self.pid_staging_angular_gain, angle_diff, self.pid_staging_angular_output_limits)
             self.speed.linear.x = stage_linear_speed
             self.speed.angular.z = stage_angular_speed
             self.pub.publish(self.speed)
-        self.pid_staging_angular.auto_mode = False
-        self.pid_staging_linear.auto_mode = False
+
     
         print('reached goal pose - Stage 1')
         self.speed.linear.x = 0
         self.speed.angular.z = 0
         self.pub.publish(self.speed)
-        
 
+        #Stage 2
+        ##stage 2.1: Turning to angle at distance to docking
 
-        #stage 2
-        ##stage 2.1: Turning tp angle at distance to docking
         self.current_time = rospy.get_time()
         print('checking dt')
-        self.left_tag_detect()
-        self.right_tag_detect()
+        self.left_bundle_tag_detect()
+        self.right_bundle_tag_detect()
         print('dt',self.dt)
 
-        #goal_xpose, goal_ypose, goal_thetha = pose_update_staging(stage_1_dist) ##
+        #goal_xpose, goal_ypose, goal_thetha = pose_update_staging(stage_1_dist) 
         angle_diff = goal_thetha - self.current_theta
         print('Turning bot until to goal orientation until left/right tag detected')
        
-
         ##The following while loop turn the bot to goal orientation until april tag is detected as which point it moves to the bot in a manner to orientation it towards the next docking station distance goal
-        self.pid_staging_tag_detect.auto_mode = True
-        stage_angular_speed = self.pid_staging_tag_detect(angle_diff)
+
+        stage_angular_speed = self.pid(self.pid_staging_tag_detect_gain, angle_diff, self.pid_staging_tag_detect_output_limits)
         while True:
     
             self.speed.linear.x = 0.0
-            self.speed.angular.z = -stage_angular_speed
+            self.speed.angular.z = stage_angular_speed
             
 
-            self.left_tag_detect()
-            self.right_tag_detect()
+            self.left_bundle_tag_detect()
+            self.right_bundle_tag_detect()
             
 
             if self.dt_left > 0 and self.dt_right > 0:
-                self.pid_staging_tag_detect.auto_mode = False
+
                 print('dt_left',self.dt_left)
                 print('dt_right',self.dt_right)
                 self.speed.linear.x = 0
@@ -197,14 +185,13 @@ class DockingInterface():
                 goal_xpose, goal_ypose, goal_thetha = self.pose_update_staging(self.stage_2_dist)
                 angle_diff = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose) - self.current_theta
                 
-                self.pid_staging_alignment.auto_mode = True
-                while angle_diff > self.angle_thresh_2 or angle_diff < -self.angle_thresh_2:
+                while angle_diff > self.stage_align_thresh or angle_diff < -self.stage_align_thresh:
                     angle_diff = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose) - self.current_theta
-                    stage_angular_speed = self.pid_staging_alignment(angle_diff)
+                    stage_angular_speed = self.pid(self.pid_staging_alignment_gain, angle_diff, self.pid_staging_alignment_output_limit)
                     self.speed.linear.x = 0.0
-                    self.speed.angular.z = -stage_angular_speed
+                    self.speed.angular.z = stage_angular_speed
                     self.pub.publish(self.speed)
-                self.pid_staging_alignment.auto_mode = False
+    
                 self.speed.linear.x = 0
                 self.speed.angular.z = 0
                 self.pub.publish(self.speed)
@@ -216,36 +203,31 @@ class DockingInterface():
         self.speed.linear.x = 0
         self.speed.angular.z = 0
         self.pub.publish(self.speed)
+        print('pointing towards goal pose - Stage 2')
         time.sleep(0.1)
 
-    
-
-        print('pointing towards goal pose - Stage 2')
         print('moving towards goal pose - Stage 2')
-
-        self.pid_staging_angular.auto_mode = True
-        self.pid_staging_linear.auto_mode = True
         while sqrt(pow((goal_xpose - self.current_xpose), 2) + pow((goal_ypose - self.current_ypose), 2)) > self.stage_2_radius_tolerance:
             angle_diff = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose) - self.current_theta
-            stage_linear_speed = abs(self.pid_staging_linear(sqrt(pow((goal_xpose - self.current_xpose), 2) + pow((goal_ypose - self.current_ypose), 2))))
-            stage_angular_speed = -self.pid_staging_angular(angle_diff)
+            euclidean_distance = sqrt(pow((goal_xpose - self.current_xpose), 2) + pow((goal_ypose - self.current_ypose), 2))
+            stage_linear_speed = abs(self.pid(self.pid_staging_linear_gain, euclidean_distance, self.pid_staging_linear_output_limits))
+            stage_angular_speed = self.pid(self.pid_staging_angular_gain, angle_diff, self.pid_staging_angular_output_limits)
             self.speed.linear.x = stage_linear_speed
             self.speed.angular.z = stage_angular_speed
             self.pub.publish(self.speed)
-        self.pid_staging_angular.auto_mode = False
-        self.pid_staging_linear.auto_mode = False
+
+
         print('At goal pose - Stage 2')
         self.speed.linear.x = 0
         self.speed.angular.z = 0
         self.pub.publish(self.speed)
         
-
-
         ##stage 2.1: Turning tp angle at distance to docking
+
         self.current_time = rospy.get_time()
         print('checking dt')
-        self.left_tag_detect()
-        self.right_tag_detect()
+        self.left_bundle_tag_detect()
+        self.right_bundle_tag_detect()
         print('dt',self.dt)
 
         #goal_xpose, goal_ypose, goal_thetha = pose_update_staging(stage_1_dist) ##
@@ -253,28 +235,21 @@ class DockingInterface():
         print('Turning bot until to goal orientation until tag detected')
 
         ##The following while loop turn the bot to goal orientation until april tag is detected as which point it moves to the bot in a manner to orientation it towards the next docking station distance goal
-        self.pid_staging_tag_detect.auto_mode = True
-        stage_angular_speed = self.pid_staging_tag_detect(angle_diff)
+        
+        stage_angular_speed = self.pid(self.pid_staging_tag_detect_gain, angle_diff, self.pid_staging_tag_detect_output_limits)
         
         while True:
             
-            
             self.speed.linear.x = 0.0
-            self.speed.angular.z = -stage_angular_speed
+            self.speed.angular.z = stage_angular_speed
             #print("x_pose",x_pose)
             #print("angle_diff",angle_diff)
+            self.left_bundle_tag_detect()
+            self.right_bundle_tag_detect()
             
-
-            self.left_tag_detect()
-            self.right_tag_detect()
-            
-
             if self.dt_left > 0 and self.dt_right > 0:
 
-                self.pid_staging_tag_detect.auto_mode = False
-
                 print('dt',self.dt)
-
                 self.speed.linear.x = 0
                 self.speed.angular.z = 0
                 self.pub.publish(self.speed)
@@ -283,76 +258,66 @@ class DockingInterface():
                 
                 goal_xpose, goal_ypose, goal_thetha = self.pose_update_staging(self.stage_3_dist)
                 angle_diff = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose) - self.current_theta
-                self.pid_staging_alignment.auto_mode = True
-                while angle_diff > self.angle_thresh_3 or angle_diff < -self.angle_thresh_3:
+
+                while angle_diff > self.stage_align_thresh or angle_diff < -self.stage_align_thresh:
                     
                     angle_diff = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose) - self.current_theta
-                    stage_angular_speed = self.pid_staging_alignment(angle_diff)
+                    stage_angular_speed = self.pid(self.pid_staging_alignment_gain, angle_diff, self.pid_staging_alignment_output_limit)
                     self.speed.linear.x = 0.0
-                    self.speed.angular.z = -stage_angular_speed
+                    self.speed.angular.z = stage_angular_speed
                     self.pub.publish(self.speed)
-                self.pid_staging_alignment.auto_mode = False
+
                 self.speed.linear.x = 0
                 self.speed.angular.z = 0
                 self.pub.publish(self.speed)
                 break
 
-
             self.pub.publish(self.speed)
 
         self.speed.linear.x = 0
         self.speed.angular.z = 0
         self.pub.publish(self.speed)
+        print('pointing towards goal pose - Stage 3')
         time.sleep(0.1)
 
-    
-
-        print('pointing towards goal pose - Stage 3')
         print('moving towards goal pose - Stage 3')
-        self.pid_staging_angular.auto_mode = True
-        self.pid_staging_linear.auto_mode = True
+
         while sqrt(pow((goal_xpose - self.current_xpose), 2) + pow((goal_ypose - self.current_ypose), 2)) > self.stage_3_radius_tolerance:
 
             angle_diff = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose) - self.current_theta
-            stage_linear_speed = abs(self.pid_staging_linear(sqrt(pow((goal_xpose - self.current_xpose), 2) + pow((goal_ypose - self.current_ypose), 2))))
-            stage_angular_speed = -self.pid_staging_angular(angle_diff)
+            euclidean_distance = sqrt(pow((goal_xpose - self.current_xpose), 2) + pow((goal_ypose - self.current_ypose), 2))
+            stage_linear_speed = abs(self.pid(self.pid_staging_linear_gain, euclidean_distance, self.pid_staging_linear_output_limits))
+            stage_angular_speed = self.pid(self.pid_staging_angular_gain, angle_diff, self.pid_staging_angular_output_limits)
             self.speed.linear.x = stage_linear_speed
             self.speed.angular.z = stage_angular_speed
             self.pub.publish(self.speed)
 
-        self.pid_staging_angular.auto_mode = False
-        self.pid_staging_linear.auto_mode = False
         print('At goal pose - Stage 3')
         self.speed.linear.x = 0
         self.speed.angular.z = 0
         self.pub.publish(self.speed)
     
-
         ##stage 3.1: Turning tp angle at distance to docking
+
         self.current_time = rospy.get_time()
         print('checking dt')
         x_pose_align, y_pose_align, z_pose = self.pose_update_alignment()
         print('dt',self.dt)
         angle_diff = goal_thetha - self.current_theta
         print('Turning bot until to goal orientation until tag detected')
-        
-        self.pid_staging_tag_detect.auto_mode = True
-        stage_angular_speed = self.pid_staging_tag_detect(angle_diff)
+
+        stage_angular_speed = self.pid(self.pid_staging_tag_detect_gain, angle_diff, self.pid_staging_tag_detect_output_limits)
+
         ##The following while loop turn the bot to goal orientation until april tag is detected as which point it moves to the bot in a manner to orientation it towards the next docking station distance goal
+
         while True:
 
-            
-            
             self.speed.linear.x = 0.0
-            self.speed.angular.z = -stage_angular_speed
-           
+            self.speed.angular.z = stage_angular_speed
             x_pose_align, y_pose_align, z_pose = self.pose_update_alignment()
             
-
             if self.dt > 0:
-                self.pid_staging_tag_detect.auto_mode = False
                 print('dt',self.dt)
-
                 self.speed.linear.x = 0
                 self.speed.angular.z = 0
                 self.pub.publish(self.speed)
@@ -361,63 +326,51 @@ class DockingInterface():
                 
                 x_pose, y_pose, z_pose = self.pose_update_alignment()
                 angle_diff = math.atan(y_pose/x_pose)
-                self.pid_staging_alignment.auto_mode = True
-                while angle_diff > self.angle_thresh_3_align or angle_diff < -self.angle_thresh_3_align:
+
+                while angle_diff > self.final_align_thresh or angle_diff < -self.final_align_thresh:
 
                     x_pose, y_pose, z_pose = self.pose_update_alignment()
                     angle_diff = math.atan(y_pose/x_pose)
-                    stage_angular_speed = -self.pid_staging_alignment(angle_diff)
+                    stage_angular_speed = self.pid(self.pid_final_alignment_gain, angle_diff, self.pid_final_alignment_output_limit)
                     self.speed.linear.x = 0.0
                     self.speed.angular.z = stage_angular_speed
                     #print("x_pose",x_pose)
                     #print("angle_diff",angle_diff)
-
-
                     self.pub.publish(self.speed)
-                self.pid_staging_alignment.auto_mode = False
+
                 self.speed.linear.x = 0
                 self.speed.angular.z = 0
                 self.pub.publish(self.speed)
                 break
-
 
             self.pub.publish(self.speed)
 
         self.speed.linear.x = 0
         self.speed.angular.z = 0
         self.pub.publish(self.speed)
-      
         time.sleep(0.1)
+
         x_pose, y_pose, z_pose = self.pose_update_alignment()
         print(z_pose)
 
-
-        self.pid_staging_angular.auto_mode = True
-        self.pid_staging_linear.auto_mode = True
-        while z_pose > 0.1:
+        while z_pose > self.engage_dist:
 
             #print(z_pose)
             
             x_pose, y_pose, z_pose = self.pose_update_alignment()
             angle_diff = math.atan(y_pose/x_pose)
             stage_linear_speed = 0.02
-            stage_angular_speed = -self.pid_staging_angular(angle_diff)
+            stage_angular_speed = self.pid(self.pid_staging_angular_gain, angle_diff, self.pid_staging_angular_output_limits)
             self.speed.linear.x = stage_linear_speed
             self.speed.angular.z = stage_angular_speed
             self.pub.publish(self.speed)
-
-        self.pid_staging_angular.auto_mode = False
-        self.pid_staging_linear.auto_mode = False
-
 
         self.speed.linear.x = 0
         self.speed.angular.z = 0
         self.pub.publish(self.speed)
         print("Docking Complete")
 
-      
         self.dock_feedback_pub.publish(self.dock_feedback)
-        
         
     def docking_callback(self, data):
         self.docking_cmd = data.data
@@ -430,16 +383,13 @@ class DockingInterface():
         (roll, pitch, yaw) = euler_from_quaternion (orientation_list)
         self.current_theta = yaw
     
-
-
-
     def pose_update_staging(self, value): 
         while True: 
 
             pose = PoseStamped()
             pose.header = std_msgs.msg.Header()
             
-            pose.header.frame_id = self.docking_tag_name
+            pose.header.frame_id = self.docking_bundle_name
             pose.pose = Pose()
             pose.pose.position.x = 0
             pose.pose.position.y = 0
@@ -455,7 +405,7 @@ class DockingInterface():
                 transform = self.tf_buffer.lookup_transform(self.odom_frame,
                                             # source frame:
                                             pose.header.frame_id,
-                                            # get the tf at the time the pose was valids
+                                            # get the tf at the time the last pose was valid
                                             pose.header.stamp,
                                             # wait for at most 1 second for transform, otherwise throw
                                             rospy.Duration(1))
@@ -470,32 +420,26 @@ class DockingInterface():
                 #current_time = pose_transformed.header.stamp
                 #print('time',current_time)
 
-            
-        
                 orientation_q = pose_transformed.pose.orientation
                 orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
                 (roll, pitch, goal_thetha) = euler_from_quaternion (orientation_list)
                 print(goal_thetha)
-        
                 break
 
-                
             except:
                 self.speed.linear.x = 0
                 self.speed.angular.z = 0
                 self.pub.publish(self.speed)
                 rospy.loginfo("NO TAG TF")
                 continue
-
-    
       
         return goal_xpose, goal_ypose, goal_thetha
 
     def pose_update_alignment(self):
 
         try:
-            (trans,rot,) = self.t.lookupTransform( self.camera_link, self.alignment_docking_tag_name, rospy.Time(0))
-            lookup_time = self.t.getLatestCommonTime( self.camera_link, self.alignment_docking_tag_name)
+            (trans,rot,) = self.t.lookupTransform(  self.base_link_frame, self.alignment_docking_tag_name, rospy.Time(0))
+            lookup_time = self.t.getLatestCommonTime(  self.base_link_frame, self.alignment_docking_tag_name)
             #print("lastest", lookup_time)
             self.dt = lookup_time.to_sec() - self.current_time
             self.current_time = lookup_time.to_sec()
@@ -512,45 +456,33 @@ class DockingInterface():
 
         return x_pose_align, y_pose_align, z_pose
 
-    def left_tag_detect(self):
+    def left_bundle_tag_detect(self):
         try:
             
-            lookup_time = self.t.getLatestCommonTime( self.base_link_frame, self.left_tag)
+            lookup_time = self.t.getLatestCommonTime( self.base_link_frame, self.left_bundle_tag)
             self.dt_left = lookup_time.to_sec() - self.current_time
 
-   
-            
-            
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             self.speed.linear.x = 0
             self.speed.angular.z = 0
             self.pub.publish(self.speed)
             rospy.loginfo("NO TAG TF")
 
-  
-
-    def right_tag_detect(self):
+    def right_bundle_tag_detect(self):
         try:
-            lookup_time = self.t.getLatestCommonTime( self.base_link_frame, self.right_tag)
+            lookup_time = self.t.getLatestCommonTime( self.base_link_frame, self.right_bundle_tag)
             self.dt_right = lookup_time.to_sec() - self.current_time
 
-            
-            
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             self.speed.linear.x = 0
             self.speed.angular.z = 0
             self.pub.publish(self.speed)
             rospy.loginfo("NO TAG TF")
-
-
-
-
-
 
     def pose_update_final(self): #Stage 3 - Final movement 
 
         try:
-            (trans,rot) = t.lookupTransform( self.docking_tag_name, self.base_link_frame, rospy.Time(0))
+            (trans,rot) = t.lookupTransform( self.docking_bundle_name, self.base_link_frame, rospy.Time(0))
             z_pose = trans[2]
             
             
@@ -562,26 +494,19 @@ class DockingInterface():
 
         return z_pose
 
-
- 
-        
-
-        
-
     def run(self):
         rospy.init_node('docking_node')
 
         self.dock_feedback_pub = rospy.Publisher('/docking_result', Int32, queue_size=1)
         rospy.Subscriber('/docking_cmd',  Int32 , self.docking_callback, queue_size=1)
         self.pub =rospy.Publisher("/cmd_vel",Twist,  queue_size=1)
-        rospy.Subscriber('odom',Odometry,self.odometryCb)
+        rospy.Subscriber(self.odom_frame ,Odometry,self.odometryCb)
         self.t = tf.TransformListener()
-        rate = rospy.Rate(2)
+        self.led_cmd_pub = rospy.Publisher("led_cmd", Int32, queue_size=1)
+        rate = rospy.Rate(10)
 
         pose = PoseStamped()
         pose.header = std_msgs.msg.Header()
-
-
 
         self.speed = Twist()
         self.speed.linear.x = 0
@@ -593,22 +518,18 @@ class DockingInterface():
         while not rospy.is_shutdown():
            
             if self.docking_cmd == 1:
+                self.led_cmd_pub.publish(self.docking_led)
                 self.dock()
+                self.led_cmd_pub.publish(self.charging_led)
 
             if self.docking_cmd == 2:
+                self.led_cmd_pub.publish(self.docking_led)
                 self.undock()
+                self.led_cmd_pub.publish(self.driving_led)
 
 
             rate.sleep()
       
-
-            
-
-
-
-            
-
-            
 
 if __name__ == '__main__':
     
