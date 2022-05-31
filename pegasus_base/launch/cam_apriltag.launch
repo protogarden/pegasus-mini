@@ -1,0 +1,25 @@
+<launch>
+
+    
+
+
+
+
+  <include file="$(find pegasus_base)/launch/pegasus_base.launch"/>
+  <include file="$(find apriltag_ros)/launch/continuous_detection.launch"/> 
+    <!-- Remap topic required by the node to custom topics -->
+
+  <arg name="pi_cam_config_file" default="$(find pegasus_base)/config/pi_cam_config.yaml"/>
+  <node pkg="pegasus_base" type="pi_camfeed.py" name="camera_pub" output="screen">
+    <rosparam file="$(arg pi_cam_config_file)" command="load"/>
+  </node>
+
+  <arg name="docking_config_file" default="$(find pegasus_base)/config/docking_config.yaml"/>
+  <node pkg="pegasus_base" type="docking_v4.py" name="docking_node" output="screen">
+    <rosparam file="$(arg docking_config_file)" command="load"/>
+  </node>
+
+    <!-- Optional: Subscribe to the compressed stream-->
+
+  
+</launch>

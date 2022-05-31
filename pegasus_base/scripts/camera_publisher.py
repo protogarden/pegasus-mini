@@ -6,6 +6,9 @@ import cv2
 import os
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import CameraInfo
+import time
+import numpy as np
+from cv_bridge import CvBridge
 
 
 
@@ -31,15 +34,22 @@ cam_standard_info.P = [703.6085815429688, 0.0, 461.8930612015138, 0.0, 0.0, 714.
 # Create pipeline
 if camera_type == "oak_d": 
     import depthai as dai
+
+
+
     pipeline = dai.Pipeline()
+
+    # Define source and output
     camRgb = pipeline.create(dai.node.ColorCamera)
-    xoutVideo = pipeline.create(dai.node.XLinkOut)
-    xoutVideo.setStreamName("video")
-    camRgb.setBoardSocket(dai.CameraBoardSocket.RGB)
-    camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
-    camRgb.setVideoSize(1920, 1080)
-    xoutVideo.input.setBlocking(False)
-    xoutVideo.input.setQueueSize(1)
+    xoutRgb = pipeline.create(dai.node.XLinkOut)
+
+    xoutRgb.setStreamName("rgb")
+
+    # Properties
+    camRgb.setPreviewSize(640,360)
+    camRgb.setInterleaved(False)
+    camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
+    camRgb.preview.link(xoutRgb.input)
     #camera_information:
     cam_info = CameraInfo()
     cam_info.K = [712.1036081760766, 0.0, 467.68377603664027, 0.0, 712.403233695187, 269.04193985198145, 0.0, 0.0, 1.0]
@@ -47,33 +57,46 @@ if camera_type == "oak_d":
     cam_info.R = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
     cam_info.P = [703.6085815429688, 0.0, 461.8930612015138, 0.0, 0.0, 714.2974853515625, 270.0070402640449, 0.0, 0.0, 0.0, 1.0, 0.0]
     # Linking
-    camRgb.video.link(xoutVideo.input)
+
 
     with dai.Device(pipeline) as device:
+        print('Usb speed: ', device.getUsbSpeed().name)
+        print('Connected cameras: ', device.getConnectedCameras())
+        
+
 
         img_pub = rospy.Publisher('/camera_pub/image_rect', Image, queue_size = 10)
         cam_pub = rospy.Publisher('/camera_pub/camera_info', CameraInfo, queue_size = 10)
         
 
-        video = device.getOutputQueue(name="video", maxSize=1, blocking=False)
-        rate = rospy.Rate(5)
+        qRgb = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
+        rate = rospy.Rate(10)
         rospy.loginfo("/port: %s, /cam_type: %s", cam_port, camera_type)
+        bridge = CvBridge()
 
         while not rospy.is_shutdown():
-            videoIn = video.get()
-            i = videoIn.getCvFrame()
-            img =cv2.resize(i,(960,540))
+            inRgb = qRgb.get()
+            img = inRgb.getCvFrame()
+            #img =cv2.resize(img,(960,540))
             img_msg = Image()
+            #cv2.imshow('window_name', img)
+            
+          
+
             stamp = rospy.Time.now()
+            
             img_msg.height = img.shape[0]
             img_msg.width = img.shape[1]
             img_msg.step = img.strides[0]
             img_msg.encoding = 'bgr8'
             img_msg.header.frame_id = 'camera'
             img_msg.header.stamp = stamp
+            #img_msg.data = bridge.cv2_to_imgmsg(img, encoding='bgr8')
             img_msg.data = img.flatten().tolist()
+   
             
             img_pub.publish(img_msg)
+            
 
             cam_info.header.stamp = stamp
             rate.sleep()
@@ -84,7 +107,9 @@ if camera_type == "oak_d":
 
             # Get BGR frame from NV12 encoded video frame to show with opencv
             # Visualizing the frame on slower hosts might have overhead
-            #cv2.imshow("video", videoIn.getCvFrame())
+
+           
+           
 
             if cv2.waitKey(1) == ord('q'):
                 break

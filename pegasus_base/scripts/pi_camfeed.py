@@ -22,7 +22,7 @@ def gstreamer_pipeline(
     capture_height=720,
     display_width=640,
     display_height=360,
-    framerate=5,
+    framerate = 5,
     flip_method=0,
 ):
     return (
@@ -44,33 +44,30 @@ def gstreamer_pipeline(
     )
 
 
-
-
-
-
-
-rospy.init_node('camera_pub')
-
-#cam_port = rospy.get_param("/port")
-#camera_type = rospy.get_param("/cam_type")
-
-cam_standard_info = CameraInfo()
-cam_standard_info.K = [673.2482675259557, 0.0, 329.80724044927996, 0.0, 675.6751413943377, 180.66056825004506, 0.0, 0.0, 1.0]
-cam_standard_info.D = [0.21887280107995002, -0.4072944753663401, -0.00013698773470533307, 0.0009668096667496951, 0.0]
-cam_standard_info.R = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
-cam_standard_info.P = [693.0473022460938, 0.0, 330.2610844036044, 0.0, 0.0, 696.1262817382812, 180.62339938821424, 0.0, 0.0, 0.0, 1.0, 0.0]
-
-
-
-
-
-
-
 def pub_camera():
-    video_capture = cv2.VideoCapture(gstreamer_pipeline(flip_method=0), cv2.CAP_GSTREAMER)
-    img_pub = rospy.Publisher('/camera_pub/image_rect', Image, queue_size = 1)
-    cam_pub = rospy.Publisher('/camera_pub/camera_info', CameraInfo, queue_size = 10)
     rospy.init_node('camera_pub')
+    camera_framerate = rospy.get_param('~framerate', 5)
+    camera_pub_topic = rospy.get_param('~camera_image_topic', '/camera_pub/image_rect')
+    camera_info_topic = rospy.get_param('~camera_info_topic', '/camera_pub/camera_info')
+    capture_width = rospy.get_param('~capture_width', 1280)
+    capture_height = rospy.get_param('~capture_height', 720)
+    pub_width = rospy.get_param('~image_pub_width', 640)
+    pub_height = rospy.get_param('~image_pub_height', 360)
+    camera_K = rospy.get_param('~cam_K', [673.2482675259557, 0.0, 329.80724044927996, 0.0, 675.6751413943377, 180.66056825004506, 0.0, 0.0, 1.0])
+    camera_D = rospy.get_param('~cam_D', [0.21887280107995002, -0.4072944753663401, -0.00013698773470533307, 0.0009668096667496951, 0.0])
+    camera_R = rospy.get_param('~cam_R', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
+    camera_P = rospy.get_param('~cam_P', [693.0473022460938, 0.0, 330.2610844036044, 0.0, 0.0, 696.1262817382812, 180.62339938821424, 0.0, 0.0, 0.0, 1.0, 0.0])
+
+
+
+    cam_standard_info = CameraInfo()
+    cam_standard_info.K = camera_K
+    cam_standard_info.D = camera_D
+    cam_standard_info.R = camera_R
+    cam_standard_info.P = camera_P
+    video_capture = cv2.VideoCapture(gstreamer_pipeline(flip_method=0,framerate=camera_framerate, capture_width = capture_width, capture_height = capture_height,display_width=pub_width,display_height=pub_height), cv2.CAP_GSTREAMER)
+    img_pub = rospy.Publisher(camera_pub_topic, Image, queue_size = 1)
+    cam_pub = rospy.Publisher(camera_info_topic, CameraInfo, queue_size = 10)
     bridge = CvBridge()
     
 

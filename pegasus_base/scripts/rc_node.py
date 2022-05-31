@@ -27,8 +27,8 @@ class RoboClawInterface:
         
         self.encoder = None
   
-        self.TICKS_PER_METER = 8148.71
-        self.BASE_WIDTH = 0.25362
+        self.TICKS_PER_METER = 8130.0
+        self.BASE_WIDTH = 0.25868
         self.start_up = 1
 
 
@@ -54,8 +54,9 @@ class RoboClawInterface:
         current_time = rospy.Time.now()
         d_time = (current_time - self.last_enc_time).to_sec()
         freq = 1/d_time
-        if freq < 50:
-            print("chock")
+        if freq < 10:
+            print("chock", freq)
+
         self.last_enc_time = current_time
        
        
@@ -122,12 +123,12 @@ class RoboClawInterface:
         odom.pose.pose.position.z = 0.0
         odom.pose.pose.orientation = Quaternion(*quat)
 
-        odom.pose.covariance[0] = 0.01
-        odom.pose.covariance[7] = 0.01
-        odom.pose.covariance[14] = 99999
-        odom.pose.covariance[21] = 99999
-        odom.pose.covariance[28] = 99999
-        odom.pose.covariance[35] = 0.01
+        odom.pose.covariance[0] = 0.05
+        odom.pose.covariance[7] = 0.05
+        odom.pose.covariance[14] = 0.05
+        odom.pose.covariance[21] = 0.05
+        odom.pose.covariance[28] = 0.05
+        odom.pose.covariance[35] = 0.05
 
         odom.child_frame_id = 'base_link'
         odom.twist.twist.linear.x = vx
@@ -165,7 +166,7 @@ class RoboClawInterface:
 
         rospy.init_node('roboclaw_interface_node', anonymous=True)
 
-        rate = rospy.Rate(200) # 10hz    
+        rate = rospy.Rate(100) # 10hz    
         self.last_enc_time = rospy.Time.now()
 
         # status publisher
@@ -187,8 +188,8 @@ class RoboClawInterface:
 
             
 
-            if count == 10: #publish speed command every 10 iterations in order to increase speed odom calculation
-                self.rc.SpeedAccelM1M2(self.address, 6000 ,self.right_speed, self.left_speed)
+            if count == 1: #publish speed command every 10 iterations in order to increase speed odom calculation
+                self.rc.SpeedAccelM1M2(self.address, 8000 ,self.right_speed, self.left_speed)
                 #self.rc.SpeedM1M2(self.address,self.right_speed, self.left_speed)
                 count = 0
 
@@ -233,7 +234,7 @@ class RoboClawInterface:
             #except Exception as e:
                 #print("Stats Error: " + str(e))
 
-            #rate.sleep()
+            rate.sleep()
 
         self.rc.SpeedAccelM1M2(self.address,0,0,0)    
 

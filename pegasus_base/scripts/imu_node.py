@@ -13,7 +13,7 @@ from sensor_msgs.msg import Imu
 from tf.transformations import quaternion_from_euler
 from dynamic_reconfigure.server import Server
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
-from nav_msgs.msg import Odometry
+
 
 degrees2rad = math.pi/180.0
 imu_yaw_calibration = 0.0
