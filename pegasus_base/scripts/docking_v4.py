@@ -50,6 +50,17 @@ class DockingInterface():
         self.stage_align_thresh = rospy.get_param('~stage_alignment_tolerance', 0.008)
         self.final_align_thresh = rospy.get_param('~final_alignment_tolerance', 0.008)
 
+        self.camera_freq = rospy.get_param('~framerate', 5)
+        self.tag_check_ratio = rospy.get_param('~tag_detect_ratio', 2)
+        self.tag_check_freq = self.camera_freq*self.tag_check_ratio
+        
+
+        self.odom_freq = rospy.get_param('~odom_frequency', 100)
+        self.odom_update_ratio = rospy.get_param('~odom_update_ratio', 0.5)
+        self.odom_update_freq = self.odom_freq*self.odom_update_ratio
+        
+        self.undock_linear_speed = 0.02
+
         self.current_xpose = 0
         self.current_ypose = 0
         self.current_theta = 0
@@ -122,6 +133,9 @@ class DockingInterface():
             self.speed.linear.x = 0.0
             self.speed.angular.z = stage_angular_speed
             self.pub.publish(self.speed)
+            self.odom_update_rate.sleep()
+        
+
         self.speed.linear.x = 0
         self.speed.angular.z = 0
         self.pub.publish(self.speed)
@@ -139,6 +153,7 @@ class DockingInterface():
             self.speed.linear.x = stage_linear_speed
             self.speed.angular.z = stage_angular_speed
             self.pub.publish(self.speed)
+            self.odom_update_rate.sleep()
 
     
         print('reached goal pose - Stage 1')
@@ -191,6 +206,7 @@ class DockingInterface():
                     self.speed.linear.x = 0.0
                     self.speed.angular.z = stage_angular_speed
                     self.pub.publish(self.speed)
+                    self.odom_update_rate.sleep()
     
                 self.speed.linear.x = 0
                 self.speed.angular.z = 0
@@ -199,6 +215,7 @@ class DockingInterface():
 
 
             self.pub.publish(self.speed)
+            self.tag_check_rate.sleep()
 
         self.speed.linear.x = 0
         self.speed.angular.z = 0
@@ -215,6 +232,7 @@ class DockingInterface():
             self.speed.linear.x = stage_linear_speed
             self.speed.angular.z = stage_angular_speed
             self.pub.publish(self.speed)
+            self.odom_update_rate.sleep()
 
 
         print('At goal pose - Stage 2')
@@ -266,6 +284,7 @@ class DockingInterface():
                     self.speed.linear.x = 0.0
                     self.speed.angular.z = stage_angular_speed
                     self.pub.publish(self.speed)
+                    self.odom_update_rate.sleep()
 
                 self.speed.linear.x = 0
                 self.speed.angular.z = 0
@@ -273,6 +292,7 @@ class DockingInterface():
                 break
 
             self.pub.publish(self.speed)
+            self.tag_check_rate.sleep()
 
         self.speed.linear.x = 0
         self.speed.angular.z = 0
@@ -291,6 +311,7 @@ class DockingInterface():
             self.speed.linear.x = stage_linear_speed
             self.speed.angular.z = stage_angular_speed
             self.pub.publish(self.speed)
+            self.odom_update_rate.sleep()
 
         print('At goal pose - Stage 3')
         self.speed.linear.x = 0
@@ -337,6 +358,7 @@ class DockingInterface():
                     #print("x_pose",x_pose)
                     #print("angle_diff",angle_diff)
                     self.pub.publish(self.speed)
+                    self.odom_update_rate.sleep()
 
                 self.speed.linear.x = 0
                 self.speed.angular.z = 0
@@ -344,6 +366,7 @@ class DockingInterface():
                 break
 
             self.pub.publish(self.speed)
+            self.tag_check_rate.sleep()
 
         self.speed.linear.x = 0
         self.speed.angular.z = 0
@@ -359,11 +382,12 @@ class DockingInterface():
             
             x_pose, y_pose, z_pose = self.pose_update_alignment()
             angle_diff = math.atan(y_pose/x_pose)
-            stage_linear_speed = 0.02
+            stage_linear_speed = self.undock_linear_speed
             stage_angular_speed = self.pid(self.pid_staging_angular_gain, angle_diff, self.pid_staging_angular_output_limits)
             self.speed.linear.x = stage_linear_speed
             self.speed.angular.z = stage_angular_speed
             self.pub.publish(self.speed)
+            self.odom_update_rate.sleep()
 
         self.speed.linear.x = 0
         self.speed.angular.z = 0
@@ -503,6 +527,8 @@ class DockingInterface():
         rospy.Subscriber(self.odom_frame ,Odometry,self.odometryCb)
         self.t = tf.TransformListener()
         self.led_cmd_pub = rospy.Publisher("led_cmd", Int32, queue_size=1)
+        self.odom_update_rate = rospy.Rate(self.odom_update_freq)
+        self.tag_check_rate = rospy.Rate(self.tag_check_freq)
         rate = rospy.Rate(10)
 
         pose = PoseStamped()

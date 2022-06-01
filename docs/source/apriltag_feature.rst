@@ -106,7 +106,7 @@ You can now launch the apriltag package by running the following command in a se
 
 .. code-block:: bash
 
-    roslaunch apriltag_ros apriltag.launch
+    roslaunch apriltag_ros continuous_detection.launch
 
 .. image:: /images/apriltag/april.png
     :align: center

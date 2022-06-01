@@ -65,6 +65,7 @@ gz_offset = rospy.get_param('~gz_offset', 0.0)
 topic = rospy.get_param('~topic', 'imu')
 vth_thresh = rospy.get_param('~vth_thresh', 0.02)
 frame_id = rospy.get_param('~frame_id', 'base_link')
+imu_node_freq =  rospy.get_param('~imu_node_frequency', 100)
 
 
 pub = rospy.Publisher(topic, Imu, queue_size=1)
@@ -73,7 +74,7 @@ last_time = rospy.Time.now()
 
 # Check your COM port and baud rate
 rospy.loginfo("Opening %s...", port)
-rate = rospy.Rate(100)
+rate = rospy.Rate(imu_node_freq)
 try:
     ser = serial.Serial(port=port, baudrate=115200, timeout=1)
     #ser = serial.Serial(port=port, baudrate=57600, timeout=1, rtscts=True, dsrdtr=True) # For compatibility with some virtual serial ports (e.g. created by socat) in Python 2.7
@@ -160,9 +161,9 @@ while not rospy.is_shutdown():
         
         
         imuMsg.orientation_covariance = [
-            1000 , 0 , 0,
-            0, 1000, 0,
-            0, 0, 1000
+            99999 , 0 , 0,
+            0, 99999, 0,
+            0, 0, 99999
             ]
 
 

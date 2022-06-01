@@ -14,7 +14,7 @@ def callback(data):
 rospy.init_node("led_node")
 port = rospy.get_param('~port', '/dev/ttyUSB0')
 rospy.Subscriber("led_cmd", Int32, callback)
-rate = rospy.Rate(10)
+rate = rospy.Rate(30)
 
 
 

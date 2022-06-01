@@ -16,9 +16,6 @@ class RoboClawInterface:
         
         self.left_speed = 0
         self.right_speed = 0
-        self.address = 0x80
-        self.rc = Roboclaw("/dev/ttyACM0", 115200)
-        self.odom_pub = rospy.Publisher('/odom', Odometry, queue_size=10)
         self.cur_x = 0
         self.cur_y = 0
         self.cur_theta = 0.0
@@ -27,9 +24,7 @@ class RoboClawInterface:
         
         self.encoder = None
   
-        self.TICKS_PER_METER = 8130.0
-        self.BASE_WIDTH = 0.25868
-        self.start_up = 1
+
 
 
     def normalize_angle(angle):
@@ -123,11 +118,11 @@ class RoboClawInterface:
         odom.pose.pose.position.z = 0.0
         odom.pose.pose.orientation = Quaternion(*quat)
 
-        odom.pose.covariance[0] = 0.05
-        odom.pose.covariance[7] = 0.05
-        odom.pose.covariance[14] = 0.05
-        odom.pose.covariance[21] = 0.05
-        odom.pose.covariance[28] = 0.05
+        odom.pose.covariance[0] = 0.02
+        odom.pose.covariance[7] = 0.02
+        odom.pose.covariance[14] = 99999
+        odom.pose.covariance[21] = 99999
+        odom.pose.covariance[28] = 99999
         odom.pose.covariance[35] = 0.05
 
         odom.child_frame_id = 'base_link'
@@ -153,34 +148,60 @@ class RoboClawInterface:
         self.rc.SpeedAccelM1M2(self.address,0,0,0)    
         
     def run(self):
-        
-        self.rc.Open()
 
-        version = self.rc.ReadVersion(self.address)
 
-        if version[0]==False:
-            print ("GETVERSION Failed")
-            return
-        else:
-            print (repr(version[1]))
+
+
 
         rospy.init_node('roboclaw_interface_node', anonymous=True)
 
-        rate = rospy.Rate(100) # 10hz    
-        self.last_enc_time = rospy.Time.now()
+        port = rospy.get_param('~roboclaw_port', '/dev/ttyACM0')
+        odom_freq = rospy.get_param('~odom_frequency', 100)
+        p = rospy.get_param('~velocity_p', 4000)
+        i = rospy.get_param('~velocity_i', 500)
+        d = rospy.get_param('~velocity_d', 0.0)
+        qpps = rospy.get_param('~qpps', 9000)
+        motor1_max_current = rospy.get_param('~motor1_max_current', 2000)
+        motor2_max_current = rospy.get_param('~motor2_max_current', 2000)
+        wheel_accel = rospy.get_param('~wheel_accel', 8000)
+
+       
 
         # status publisher
         #battery_status_pub = rospy.Publisher('batteryVoltage', Float32, queue_size=5)
         #battery_status_data = Float32()
 
         # encoder publishers
+        self.odom_pub = rospy.Publisher('/odom', Odometry, queue_size=10)
         encoder_pub = rospy.Publisher('encoder', Int64MultiArray, queue_size=5)
         encoder_data = Int64MultiArray()
         
         rospy.Subscriber('wheelspeed', Int64MultiArray, self.cb_speedCallBack)
+
+        self.address = 0x80
+        self.rc = Roboclaw(port, 115200)
+        self.rc.Open()
+
+        version = self.rc.ReadVersion(self.address)
+        if version[0]==False:
+            print ("GETVERSION Failed")
+            return
+        else:
+            print (repr(version[1]))
         self.rc.ResetEncoders(self.address)
-        self.rc.SpeedAccelM1M2(self.address,0,0,0)   
+        
+        self.rc.SetM1VelocityPID(self.address,p,i,d,qpps)
+        self.rc.SetM2VelocityPID(self.address,p,i,d,qpps)
+        self.rc.SetM1MaxCurrent(self.address, motor1_max_current)
+        self.rc.SetM2MaxCurrent(self.address, motor2_max_current)
         count = 0
+
+        rate = rospy.Rate(odom_freq) # 10hz  
+        self.last_enc_time = rospy.Time.now()
+        self.rc.SpeedAccelM1M2(self.address,0,0,0)
+
+        self.TICKS_PER_METER = rospy.get_param('~ticks_per_meter', 8130.0)
+        self.BASE_WIDTH = rospy.get_param('~base_width', 0.25868)
 
 
 
@@ -188,13 +209,9 @@ class RoboClawInterface:
 
             
 
-            if count == 1: #publish speed command every 10 iterations in order to increase speed odom calculation
-                self.rc.SpeedAccelM1M2(self.address, 8000 ,self.right_speed, self.left_speed)
-                #self.rc.SpeedM1M2(self.address,self.right_speed, self.left_speed)
-                count = 0
-
-            count += 1
-
+            
+            self.rc.SpeedAccelM1M2(self.address, wheel_accel ,self.right_speed, self.left_speed)
+            #self.rc.SpeedM1M2(self.address,self.right_speed, self.left_speed)
              
 
             # read encoder data
