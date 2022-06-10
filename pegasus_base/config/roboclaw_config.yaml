@@ -15,4 +15,4 @@ motor1_max_current: 1000 #mA
 motor2_max_current: 1000 #mA
 
 #Motor Acceleration
-wheel_accel: 8000 #ticks/s/s
+wheel_accel: 6000 #ticks/s/s

@@ -22,7 +22,7 @@ final_alignment_tolerance: 0.008 #Final alignment tolerance (Rads)
 pid_staging_alignment_gain: 0.6
 pid_staging_alignment_output_limit: 0.2
 
-pid_staging_tag_detect_gain: 0.3
+pid_staging_tag_detect_gain: 0.2
 pid_staging_tag_detect_output_limits: 0.2
 
 pid_staging_angular_gain: 0.3

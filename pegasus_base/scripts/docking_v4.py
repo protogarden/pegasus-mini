@@ -114,6 +114,14 @@ class DockingInterface():
 
 
     def dock(self):
+        
+        def angle_check(angle_diff, goal_angle): #check for robot 180 to -180 problem causing robot to try go long way round due to angle difference
+            if angle_diff > 180 and self.current_theta > 0:
+                angle_diff = (360 + atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose)) - self.current_theta
+            elif angle_diff > 180 and self.current_theta < 0:
+                angle_diff = (360 - atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose)) + self.current_theta
+            
+            return angle_diff
 
         self.dock_feedback_pub.publish(self.docking_feedback)
         self.speed.linear.x = 0
@@ -124,7 +132,9 @@ class DockingInterface():
         ##stage 1.1: Turning to angle at distance to docking
         
         goal_xpose, goal_ypose, goal_thetha = self.pose_update_staging(self.stage_1_dist)
-        angle_diff = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose) - self.current_theta
+        goal_angle = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose)
+        angle_diff = goal_angle - self.current_theta
+        angle_diff = angle_check(angle_diff, goal_angle)
         print('Turning towards goal pose - Stage 1')
         while angle_diff > self.stage_align_thresh or angle_diff < -self.stage_align_thresh:
             #goal_xpose, goal_ypose, goal_thetha = pose_update_staging(stage_1_dist)
@@ -172,6 +182,7 @@ class DockingInterface():
 
         #goal_xpose, goal_ypose, goal_thetha = pose_update_staging(stage_1_dist) 
         angle_diff = goal_thetha - self.current_theta
+        angle_diff = angle_check(angle_diff, goal_thetha)
         print('Turning bot until to goal orientation until left/right tag detected')
        
         ##The following while loop turn the bot to goal orientation until april tag is detected as which point it moves to the bot in a manner to orientation it towards the next docking station distance goal
@@ -198,10 +209,14 @@ class DockingInterface():
 
                 print("tag detected , turning towards Stage-2 offset")
                 goal_xpose, goal_ypose, goal_thetha = self.pose_update_staging(self.stage_2_dist)
-                angle_diff = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose) - self.current_theta
+                goal_angle = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose)
+                angle_diff = goal_angle - self.current_theta
+                angle_diff = angle_check(angle_diff, goal_angle)
                 
                 while angle_diff > self.stage_align_thresh or angle_diff < -self.stage_align_thresh:
-                    angle_diff = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose) - self.current_theta
+                    goal_angle = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose)
+                    angle_diff = goal_angle - self.current_theta
+                    angle_diff = angle_check(angle_diff, goal_angle)
                     stage_angular_speed = self.pid(self.pid_staging_alignment_gain, angle_diff, self.pid_staging_alignment_output_limit)
                     self.speed.linear.x = 0.0
                     self.speed.angular.z = stage_angular_speed
@@ -250,6 +265,8 @@ class DockingInterface():
 
         #goal_xpose, goal_ypose, goal_thetha = pose_update_staging(stage_1_dist) ##
         angle_diff = goal_thetha - self.current_theta
+
+        angle_diff = angle_check(angle_diff, goal_thetha)
         print('Turning bot until to goal orientation until tag detected')
 
         ##The following while loop turn the bot to goal orientation until april tag is detected as which point it moves to the bot in a manner to orientation it towards the next docking station distance goal
@@ -275,11 +292,18 @@ class DockingInterface():
                 print("tag detected , turning towards Stage-3 offset")
                 
                 goal_xpose, goal_ypose, goal_thetha = self.pose_update_staging(self.stage_3_dist)
-                angle_diff = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose) - self.current_theta
+                
+                goal_angle = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose)
+                angle_diff = goal_angle - self.current_theta
+                angle_diff = angle_check(angle_diff, goal_angle)
+
+                
 
                 while angle_diff > self.stage_align_thresh or angle_diff < -self.stage_align_thresh:
                     
-                    angle_diff = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose) - self.current_theta
+                    goal_angle = atan2(goal_ypose - self.current_ypose, goal_xpose - self.current_xpose)
+                    angle_diff = goal_angle - self.current_theta
+                    angle_diff = angle_check(angle_diff, goal_angle)
                     stage_angular_speed = self.pid(self.pid_staging_alignment_gain, angle_diff, self.pid_staging_alignment_output_limit)
                     self.speed.linear.x = 0.0
                     self.speed.angular.z = stage_angular_speed
@@ -325,6 +349,7 @@ class DockingInterface():
         x_pose_align, y_pose_align, z_pose = self.pose_update_alignment()
         print('dt',self.dt)
         angle_diff = goal_thetha - self.current_theta
+        angle_diff = angle_check(angle_diff, goal_thetha)
         print('Turning bot until to goal orientation until tag detected')
 
         stage_angular_speed = self.pid(self.pid_staging_tag_detect_gain, angle_diff, self.pid_staging_tag_detect_output_limits)
@@ -523,7 +548,7 @@ class DockingInterface():
 
         self.dock_feedback_pub = rospy.Publisher('/docking_result', Int32, queue_size=1)
         rospy.Subscriber('/docking_cmd',  Int32 , self.docking_callback, queue_size=1)
-        self.pub =rospy.Publisher("/cmd_vel",Twist,  queue_size=1)
+        self.pub =rospy.Publisher("/cmd_vel",Twist,  queue_size=10)
         rospy.Subscriber(self.odom_frame ,Odometry,self.odometryCb)
         self.t = tf.TransformListener()
         self.led_cmd_pub = rospy.Publisher("led_cmd", Int32, queue_size=1)
@@ -549,6 +574,8 @@ class DockingInterface():
                 self.led_cmd_pub.publish(self.charging_led)
 
             if self.docking_cmd == 2:
+                self.led_cmd_pub.publish(self.finnish_charging)
+                time.sleep(1)
                 self.led_cmd_pub.publish(self.docking_led)
                 self.undock()
                 self.led_cmd_pub.publish(self.driving_led)
