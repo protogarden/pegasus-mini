@@ -1,3 +1,4 @@
+#!/bin/env python
 import rospy 
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from actionlib_msgs.msg import GoalStatusArray
@@ -16,15 +17,26 @@ class StocktakeInterface():
     def __init__(self):
         self.status = 0
         self.initial_position = [0,0,0]
-        self.undock_position = [0,-1.18, 3.14159]
-
-        self.pos_1 = [2,-1,0]
-        self.pos_2 = [1,-1,3.14159]
-        self.dock_pos = [0,0,0]
+        self.undock_position = [0,-1.1, 3.14159]
+        self.dock_pos = [0.769, 0.232, 3.140] #done
+        self.pos_1 = [2.53,-3.5 ,0] #Start aisle 2
+        self.pos_2 = [27.865 ,-2.899,3.14] #End aisle 2
+        self.pos_3 = [2.131,-3.489, 1.741] #Back to start ailes 2 
+        self.pos_4 = [2.131, 2.909, 0] #Start aisles 1
+        self.pos_5 = [24.810, 3.337, 3.14] #End aisles 1
+        self.pos_6 = [2.454, 2.89, -2.282] #Back to start ailes 
+      
         self.no_action_cmd = 0
         self.dock_cmd = 1
         self.undock_cmd = 2
         self.docking_result = 0 #1- Docking, #2 -Undocking,#3 - Docked, #4 - Undocked
+
+        self.driving_led = 1
+        self.charging_led = 2
+        self.docking_led = 3
+        self.finnish_charging = 4
+        self.startup_led = 5
+        self.off_led = 6
       
         
 
@@ -104,6 +116,7 @@ class StocktakeInterface():
 
 
         self.dock_cmd_pub = rospy.Publisher('/docking_cmd', Int32, queue_size=1)
+        self.led_cmd_pub = rospy.Publisher("led_cmd", Int32, queue_size=1)
         rospy.Subscriber('/docking_result',  Int32 , self.docking_callback)
     
         
@@ -117,37 +130,95 @@ class StocktakeInterface():
 
             
             
-            #time.sleep(1)
+            self.led_cmd_pub.publish(self.driving_led)
+            time.sleep(2)
         
             self.goal_pose(self.pos_1[0], self.pos_1[1], self.pos_1[2])
-            time.sleep(1)
             goal_state = self.client.get_state()
             print("current_state", goal_state)
             wait = self.client.wait_for_result()
             goal_state = self.client.get_state()
             result = self.client.get_result()
             print("result",goal_state )
- 
-            self.goal_pose(self.pos_2[0], self.pos_2[1], self.pos_2[2])
-            time.sleep(1)
-            goal_state = self.client.get_state()
-            print("current_state", goal_state)
-            wait = self.client.wait_for_result()
-            goal_state = self.client.get_state()
-            result = self.client.get_result()
-            print("result",goal_state )
-            time.sleep(2)
+            
 
+            '''
+            self.goal_pose(self.pos_2[0], self.pos_2[1], self.pos_2[2])
+            goal_state = self.client.get_state()
+            print("current_state", goal_state)
+            wait = self.client.wait_for_result()
+            goal_state = self.client.get_state()
+            result = self.client.get_result()
+            print("result",goal_state )
+
+            
+            self.goal_pose(self.pos_3[0], self.pos_3[1], self.pos_3[2])
+            goal_state = self.client.get_state()
+            print("current_state", goal_state)
+            wait = self.client.wait_for_result()
+            goal_state = self.client.get_state()
+            result = self.client.get_result()
+            print("result",goal_state )
+            '''
+            self.goal_pose(self.pos_4[0], self.pos_4[1], self.pos_4[2])
+            goal_state = self.client.get_state()
+            print("current_state", goal_state)
+            wait = self.client.wait_for_result()
+            goal_state = self.client.get_state()
+            result = self.client.get_result()
+            print("result",goal_state )
+            '''
+            self.goal_pose(self.pos_5[0], self.pos_5[1], self.pos_5[2])
+            goal_state = self.client.get_state()
+            print("current_state", goal_state)
+            wait = self.client.wait_for_result()
+            goal_state = self.client.get_state()
+            result = self.client.get_result()
+            print("result",goal_state )
+
+            self.goal_pose(self.pos_6[0], self.pos_6[1], self.pos_6[2])
+            goal_state = self.client.get_state()
+            print("current_state", goal_state)
+            wait = self.client.wait_for_result()
+            goal_state = self.client.get_state()
+            result = self.client.get_result()
+            print("result",goal_state )
+            '''
+            self.goal_pose(self.dock_pos[0], self.dock_pos[1], self.dock_pos[2])
+            goal_state = self.client.get_state()
+            print("current_state", goal_state)
+            wait = self.client.wait_for_result()
+            goal_state = self.client.get_state()
+            result = self.client.get_result()
+            print("result",goal_state )
+
+            time.sleep(1)
+
+
+
+
+
+        
+            
+            
             self.dock()
+            
       
-            time.sleep(1)
+            time.sleep(7)
+            
+          
+       
             self.undock()
-            self.estimate_pose(self.undock_position[0], self.undock_position[1], self.undock_position[2])
-            time.sleep(1)
+           
+
+            
+    
+           
            
 
 
             self.rate.sleep()
+            break
       
 
             
