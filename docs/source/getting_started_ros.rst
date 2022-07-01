@@ -77,30 +77,41 @@ Install ROS Melodic:
 
 9.2. Install pegasus-mini package and various other dependent packages:
 
-.. code-block:: bash        
+.. code-block:: bash
 
+    git clone https://github.com/AprilRobotics/apriltag.git      
     git clone https://github.com/protogarden/pegasus-mini.git
     sudo apt install ros-melodic-rplidar-ros
     sudo apt-get install ros-melodic-joy ros-melodic-joystick-drivers
     sudo apt install ros-melodic-teleop-twist-joy
     sudo apt install python3-pip
     sudo pip3 install tornado
+    sudo apt-get install ros-melodic-navigation
     sudo pip3 install psutil
+    sudo pip install smbus
+    sudo apt-get install build-essential python-dev git
     sudo pip3 install simplejpeg
     sudo pip3 install rospkg
     git clone https://github.com/dheera/rosboard.git
     sudo apt-get install ros-melodic-cartographer ros-melodic-cartographer-ros ros-melodic-cartographer-ros-msgs ros-melodic-cartographer-rviz
     rosdep install -y --from-paths . --ignore-src --rosdistro melodic
 
-9.3. Build Catkin Workspace:
+9.3. Redirect OpenCV directory for build:
+
+.. code-block:: bash
+
+    sudo ln -s /usr/include/opencv4/opencv2/ /usr/include/opencv
+    
+9.4. Build Catkin Workspace:
 
 .. code-block:: bash
 
     cd ~/ws_(workspacename)
+    rosdep install --from-paths src --ignore-src -r -y
     catkin config --extend /opt/ros/${ROS_DISTRO} --cmake-args -DCMAKE_BUILD_TYPE=Release
     catkin build
 
-9.4. Source Workspace:
+9.5. Source Workspace:
 
 .. code-block:: bash
 
